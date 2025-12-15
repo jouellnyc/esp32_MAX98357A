@@ -1,4 +1,3 @@
-
 # ESP32-S3 Audio Player with SD Card
 
 A complete audio player implementation using CircuitPython on the ESP32-S3-DevKitC-1-N8R8 with MAX98357A I2S amplifier and SD card storage.
@@ -16,16 +15,19 @@ A complete audio player implementation using CircuitPython on the ESP32-S3-DevKi
 
 ## Software Requirements
 
-- **Adafruit CircuitPython ** (tested on 10.0.3)
+- **Adafruit CircuitPython 9.0.0+** (tested on 9.2.0)
 - Download from: https://circuitpython.org/board/espressif_esp32s3_devkitc_1_n8r8/
 
 ### Required CircuitPython Libraries
 
-Copy these to the `lib` folder on your CIRCUITPY drive:
-- `adafruit_sdcard.mpy`
-- `adafruit_bus_device/`
-
-Download from: https://circuitpython.org/libraries
+**No external libraries required!** This project uses only built-in CircuitPython modules:
+- `board` - GPIO pin definitions
+- `busio` - SPI and I2S communication
+- `sdcardio` - SD card support (built-in)
+- `storage` - File system mounting
+- `audiobusio` - I2S audio output
+- `audiocore` - WAV file support
+- `audiomp3` - MP3 file support (built-in)
 
 ## Wiring Diagram
 
@@ -95,7 +97,7 @@ Signals:
   ESP32-S3          SD Card
     GPIO 16   ───►   CS
     GPIO 11   ───►   MOSI
-    GPIO 13   ◄───   MISO
+    GPIO 13   ───►   MISO
     GPIO 12   ───►   SCK
 ```
 
@@ -128,8 +130,6 @@ Signals:
    ffmpeg -i input.mp3 -ar 22050 -ac 1 output.wav
    ```
 
-Author's NOTE: I had better success with mp3s. YMMV
-
 ## Software Installation
 
 1. **Install CircuitPython:**
@@ -138,13 +138,17 @@ Author's NOTE: I had better success with mp3s. YMMV
    - Drag UF2 file to USB drive that appears
    - Board will reboot with CIRCUITPY drive
 
-2. **Install libraries:**
-   - Download CircuitPython library bundle
-   - Copy required libraries to `lib` folder
+2. **Copy the project files to CIRCUITPY drive:**
+   ```
+   CIRCUITPY/
+   ├── code.py              # Main audio player (rename play.py to code.py for auto-run)
+   ├── audio_config.py      # Hardware pin configuration
+   └── (optional) audio files on root or use SD card
+   ```
 
-3. **Copy the audio player code:**
-   - Save as `code.py` on CIRCUITPY drive
-   - Board will auto-run on power-up
+3. **No additional libraries needed!** All required modules are built into CircuitPython 9.0.0+
+
+4. **Board will auto-run** `code.py` on power-up or reset
 
 ## Usage
 
