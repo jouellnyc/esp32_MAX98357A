@@ -364,6 +364,7 @@ If the default pins don't work, try these alternatives:
 - **ESP32-S3 Datasheet:** https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf
 - **MAX98357A Datasheet:** https://datasheets.maximintegrated.com/en/ds/MAX98357A-MAX98357B.pdf
 - **Audio conversion with ffmpeg:** https://ffmpeg.org/
+- **Adafruit MP3 Page** - https://learn.adafruit.com/mp3-playback-with-circuitpython/mp3-capabilities-by-microcontroller
 
 ## License
 
