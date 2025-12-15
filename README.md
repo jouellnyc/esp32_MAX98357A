@@ -19,11 +19,12 @@ Author's Note:
 
 - I did the same with an Adafruit Metro ESP32-S3 with 16 MB Flash 8 MB PSRAM - https://www.adafruit.com/product/5500 -  
 - That worked flawlessly using it's internal sd and did not need any 100 uF capacitors.
+- I leaned on Claude Ai extensively as the sd card + amplifier took lots of troubleshooting to get right.
 
 
 ## Software Requirements
 
-- **Adafruit CircuitPython 9.0.0+** (tested on 9.2.0)
+- **Adafruit CircuitPython** (tested on 10.0.3)
 - Download from: https://circuitpython.org/board/espressif_esp32s3_devkitc_1_n8r8/
 
 ### Required CircuitPython Libraries
