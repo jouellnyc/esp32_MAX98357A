@@ -223,10 +223,10 @@ print(os.listdir("/sd"))
 **Symptom:** Files disappear, "Input/output error" during playback
 
 **Solutions:**
-1. **Add 100µF capacitors** (most effective solution)
+1. **Add 100µF capacitors** (this helped a lot!)
    - One between SD card VCC and GND
    - One between MAX98357A VIN and GND
-2. Use external 5V power supply (2A minimum)
+2. Use external 5V power supply (2A minimum) (most effective solution)
 3. Lower SD card baudrate to 250000
 4. Ensure all grounds are connected together
 5. Use higher quality USB power adapter
