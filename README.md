@@ -8,7 +8,7 @@ A complete audio player implementation using CircuitPython on the ESP32-S3-DevKi
 
 - **ESP32-S3-DevKitC-1-N8R8** development board
 - **MAX98357A** I2S audio amplifier breakout - https://www.amazon.com/dp/B0B4J93M9N 
-- **HiLetgo SD Card Module** (or similar SPI SD card reader)
+- **HiLetgo SD Card Module** (or similar SPI SD card reader) - https://www.amazon.com/dp/B07BJ2P6X6
 - **4-8 ohm speaker** - https://www.adafruit.com/product/1669
 - **Jumper wires**
 - **Breadboard**
