@@ -13,6 +13,12 @@ A complete audio player implementation using CircuitPython on the ESP32-S3-DevKi
 - **Two 100-470µF electrolytic capacitors** (recommended for stability)
 - **Micro SD card** (2GB-32GB, formatted as FAT32)
 
+Author's Note:
+
+- I did the same with an Adafruit Metro ESP32-S3 with 16 MB Flash 8 MB PSRAM - https://www.adafruit.com/product/5500 -  
+- That worked flawlessly using it's internal sd and did not need any 100 uF capacitors.
+
+
 ## Software Requirements
 
 - **Adafruit CircuitPython 9.0.0+** (tested on 9.2.0)
