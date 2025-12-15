@@ -2,7 +2,7 @@
 
 A complete audio player implementation using CircuitPython on the ESP32-S3-DevKitC-1-N8R8 with MAX98357A I2S amplifier and SD card storage.
 
-<img width="1086" height="875" alt="image" src="https://github.com/user-attachments/assets/8f441f4a-caa5-4a3e-8492-582e23ce7288" />
+<img width="543" height="437" alt="image" src="https://github.com/user-attachments/assets/8f441f4a-caa5-4a3e-8492-582e23ce7288" />
 
 ## Hardware Requirements
 
