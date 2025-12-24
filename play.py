@@ -54,7 +54,8 @@ print("✓ Audio initialized!")
 def get_audio_files(directory="/"):
     """Get all audio files from specified directory"""
     audio_files = []
-
+    
+    os.sync()
     try:
         for filename in os.listdir(directory):
             # Skip system files and directories
