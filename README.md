@@ -69,7 +69,7 @@ Author's Note:
 | VCC           | 5V           | **IMPORTANT: Must use 5V** |
 | GND           | GND          | Ground |
 
-**Note:** The HiLetgo SD card module has an onboard voltage regulator (AMS1117) that converts 5V to 3.3V for the SD card. Using 3.3V will cause initialization failures.
+**Note:** The HiLetgo SD card module has an onboard voltage regulator (AMS1117) that converts 5V to 3.3V for the SD card. Using 3.3V may cause initialization failures.
 
 ### Power Stability (Critical)
 
