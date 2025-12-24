@@ -90,14 +90,18 @@ Add 100-470µF electrolytic capacitors for stable operation:
 
 ```
 Power Rails:
+
   5V  ─┬─── SD Card VCC (with 100µF cap to GND)
        ├─── MAX98357A VIN (with 100µF cap to GND)
        ├─── MAX98357A GAIN
        └─── MAX98357A SD
 
+  An external spliced blackusb cable would work here...
+
   GND ─┬─── SD Card GND
        ├─── MAX98357A GND
        └─── ESP32-S3 GND
+       └─── External 5V GND
 
 Signals:
   ESP32-S3          MAX98357A
