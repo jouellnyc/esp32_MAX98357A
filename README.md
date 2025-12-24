@@ -96,7 +96,7 @@ Power Rails:
        ├─── MAX98357A GAIN
        └─── MAX98357A SD
 
-  An external spliced blackusb cable would work here...
+  An external spliced usb cable would work here...
 
   GND ─┬─── SD Card GND
        ├─── MAX98357A GND
