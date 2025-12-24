@@ -1,5 +1,8 @@
 import board
 
+# https://www.amazon.com/dp/B09MHP42LY?
+# ESP32-S3-DevKitC-1-N8R8 Development Board
+
 # ============================================
 # I2S Audio Configuration
 # ============================================
