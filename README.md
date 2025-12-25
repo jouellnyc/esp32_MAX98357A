@@ -381,8 +381,8 @@ The ESP32 Feather has limited resources compared to newer ESP32-S3 boards.
 ```bash
 # Convert audio to ESP32-friendly format
 ffmpeg -i input.mp3 -ar 16000 -ac 1 output_16khz.wav
-
-
+```
+See the update play.py that filters for lower quality wavs.
 
 ## Additional Resources
 
