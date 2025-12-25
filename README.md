@@ -19,9 +19,10 @@ A complete audio player implementation using CircuitPython.
 
 Author's Note:
 
-- I did the same with an Adafruit Metro ESP32-S3 with 16 MB Flash 8 MB PSRAM - https://www.adafruit.com/product/5500 -  
+- I did the same with an [Adafruit Metro ESP32-S3](https://www.adafruit.com/product/5500) with 16 MB Flash 8 MB PSRAM.  
 - That worked flawlessly using it's internal sd and did not need any 100 uF capacitors.
 - I leaned on Claude Ai extensively as the sd card + amplifier took lots of troubleshooting to get right.
+- See [link](https://github.com/jouellnyc/hiletgo_sdcard_reader) for those tshoot details.
 
 
 ## Software Requirements
