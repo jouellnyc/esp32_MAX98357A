@@ -8,14 +8,14 @@ A complete audio player implementation using CircuitPython.
 
 ## Hardware Requirements
 
-- **ESP32-S3-DevKitC-1-N8R8** development board
-- **MAX98357A** I2S audio amplifier breakout - https://www.amazon.com/dp/B0B4J93M9N 
-- **HiLetgo SD Card Module** (or similar SPI SD card reader) - https://www.amazon.com/dp/B07BJ2P6X6
-- **4-8 ohm speaker** - https://www.adafruit.com/product/1669
-- **Jumper wires**
-- **Breadboard**
-- **Two 100-470µF electrolytic capacitors** (recommended for stability)
-- **Micro SD card** (2GB-32GB, formatted as FAT32)
+* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY)
+* [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
+* [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
+* [4-8 ohm Speaker](https://www.adafruit.com/product/1669)
+* Jumper wires
+* Breadboard
+* Two 100-470uF electrolytic capacitors (recommended for stability)
+* Micro SD card (2GB-32GB, formatted as FAT32)
 
 Author's Note:
 
