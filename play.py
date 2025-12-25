@@ -1,5 +1,7 @@
 import time
 import os
+import gc
+import sys
 
 import board
 import busio
@@ -11,24 +13,58 @@ import audiomp3
 
 import audio_config
 import sd_config
-import sdcard_helper
 
 print("=" * 50)
-print("ESP32-S3 Music Player")
+print("ESP32 Universal Music Player")
 print("=" * 50)
+
+# ============= BOARD DETECTION =============
+# Detect which board we're running on
+BOARD_NAME = board.board_id
+IS_S3 = "s3" in BOARD_NAME.lower()
+print(f"\nDetected: {BOARD_NAME}")
+if IS_S3:
+    print("  Using ESP32-S3 optimizations")
 
 # ============= SD CARD SETUP =============
 SD_AVAILABLE = False
 print("\n[1/3] Checking for SD card...")
-  
+
+# First check if already mounted (handles REPL reloads)
 try:
-    sdcard_helper.mount()
-except Exception as e:
-    print(f"⚠ No SD card detected (this is OK!)")
-    print(f"  Will use internal storage instead")
-else:
+    existing_mount = storage.getmount("/sd")
+    print("✓ SD card already mounted!")
     SD_AVAILABLE = True
-    print("✓ SD card ready for audio playback!")
+except OSError:
+    # Not mounted yet - try to mount
+    try:
+        if IS_S3:
+            # ESP32-S3: Use helper with settling time
+            try:
+                import sdcard_helper
+                if sdcard_helper.mount():
+                    SD_AVAILABLE = True
+                    print("✓ SD card ready (with S3 initialization)")
+            except ImportError:
+                print("⚠ sdcard_helper not found, using standard mount")
+                IS_S3 = False  # Fall back to standard method
+        
+        if not IS_S3 or not SD_AVAILABLE:
+            # Standard mount for Huzzah or if S3 helper failed
+            spi = busio.SPI(
+                clock=sd_config.SD_SCK,
+                MOSI=sd_config.SD_MOSI,
+                MISO=sd_config.SD_MISO
+            )
+            sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
+            vfs = storage.VfsFat(sd)
+            storage.mount(vfs, "/sd")
+            SD_AVAILABLE = True
+            print("✓ SD card mounted successfully!")
+            
+    except Exception as e:
+        print(f"⚠ No SD card detected (this is OK!)")
+        print(f"  Will use internal storage instead")
 
 # ============= AUDIO SETUP (MAX98357A) =============
 print("\n[2/3] Initializing audio...")
@@ -38,16 +74,24 @@ audio = audiobusio.I2SOut(
     word_select=audio_config.I2S_WORD_SELECT,
     data=audio_config.I2S_DATA,
 )
- 
 
 print("✓ Audio initialized!")
 
 # ============= MUSIC LIBRARY =============
-def get_audio_files(directory="/"):
-    """Get all audio files from specified directory"""
+
+def get_audio_files(directory="/", file_filter=None):
+    """Get all audio files from specified directory
+    
+    Args:
+        directory: Directory to scan
+        file_filter: Optional filter:
+                    'mp3' - only MP3 files
+                    'wav' - only WAV files
+                    'low' - only low quality files (16khz or 22khz in name)
+                    function - custom filter function(filename) -> bool
+    """
     audio_files = []
     
-    # No sync needed for read operations
     try:
         for filename in os.listdir(directory):
             # Skip system files and directories
@@ -57,8 +101,23 @@ def get_audio_files(directory="/"):
             filepath = f"{directory}/{filename}" if directory != "/" else f"/{filename}"
 
             # Check if it's an audio file
-            if filename.lower().endswith(('.wav', '.mp3')):
-                audio_files.append(filepath)
+            if not filename.lower().endswith(('.wav', '.mp3')):
+                continue
+            
+            # Apply filter if provided
+            if file_filter:
+                if file_filter == 'mp3' and not filename.lower().endswith('.mp3'):
+                    continue
+                elif file_filter == 'wav' and not filename.lower().endswith('.wav'):
+                    continue
+                elif file_filter == 'low':
+                    name_lower = filename.lower()
+                    if not ('16khz' in name_lower or '22khz' in name_lower or '8khz' in name_lower):
+                        continue
+                elif callable(file_filter) and not file_filter(filename):
+                    continue
+            
+            audio_files.append(filepath)
 
         # Sort alphabetically
         audio_files.sort()
@@ -68,19 +127,23 @@ def get_audio_files(directory="/"):
 
     return audio_files
 
-def get_all_audio_files():
-    """Get audio files from both internal and SD card"""
+def get_all_audio_files(file_filter=None):
+    """Get audio files from both internal and SD card
+    
+    Args:
+        file_filter: Optional filter - 'mp3', 'wav', 'low', or function
+    """
     all_files = []
 
     # Get files from internal storage
-    internal_files = get_audio_files("/")
+    internal_files = get_audio_files("/", file_filter)
     if internal_files:
         print(f"  Found {len(internal_files)} file(s) on internal storage")
         all_files.extend(internal_files)
 
     # Get files from SD card if available
     if SD_AVAILABLE:
-        sd_files = get_audio_files("/sd")
+        sd_files = get_audio_files("/sd", file_filter)
         if sd_files:
             print(f"  Found {len(sd_files)} file(s) on SD card")
             all_files.extend(sd_files)
@@ -115,24 +178,46 @@ def play_file(filepath):
                     time.sleep(0.1)
 
                 print(f"  ✓ Finished ({elapsed}s)                ")
-                return True
+                
             except KeyboardInterrupt:
                 audio.stop()
                 print(f"\n  ⏹ Stopped at {elapsed}s                ")
-                #raise
+        
+        # Cleanup after playback
+        audio.stop()
+        gc.collect()  # Free up memory
+        time.sleep(0.3)  # Let SD card settle
+        return True
 
     except KeyboardInterrupt:
+        audio.stop()
         raise
     except Exception as e:
         print(f"  ✗ Error: {e}")
+        audio.stop()
+        gc.collect()
         return False
 
-def play_all(shuffle=False, repeat=False):
-    """Play all audio files"""
-    files = get_all_audio_files()
+def play_all(shuffle=False, repeat=False, file_filter=None):
+    """Play audio files
+    
+    Args:
+        shuffle: Randomize playback order
+        repeat: Loop playlist
+        file_filter: Filter files - 'mp3', 'wav', 'low', or None for all
+    """
+    files = get_all_audio_files(file_filter)
 
     if not files:
-        print("\n✗ No audio files found!")
+        filter_msg = ""
+        if file_filter == 'mp3':
+            filter_msg = " (MP3 files)"
+        elif file_filter == 'wav':
+            filter_msg = " (WAV files)"
+        elif file_filter == 'low':
+            filter_msg = " (low quality files)"
+        
+        print(f"\n✗ No audio files found{filter_msg}!")
         print("\n📁 To add files:")
         if SD_AVAILABLE:
             print("  • Copy .wav or .mp3 files to SD card, OR")
@@ -140,7 +225,7 @@ def play_all(shuffle=False, repeat=False):
         print("\n  Supported formats: .wav, .mp3")
         return
 
-    print(f"\n[3/3] Found {len(files)} audio file(s) total")
+    print(f"\n[3/3] Found {len(files)} audio file(s)")
     print("-" * 50)
 
     for i, filepath in enumerate(files, 1):
@@ -174,13 +259,34 @@ def play_all(shuffle=False, repeat=False):
                 break
 
             print("\n🔁 Repeating playlist...")
+            gc.collect()
     except KeyboardInterrupt:
         print("\n⏹ Playback stopped")
         audio.stop()
 
-def play_track(track_number):
-    """Play a specific track by number"""
-    files = get_all_audio_files()
+def play_all_mp3(shuffle=False, repeat=False):
+    """Play all MP3 files"""
+    print("🎵 Playing MP3 files only")
+    play_all(shuffle=shuffle, repeat=repeat, file_filter='mp3')
+
+def play_all_wav(shuffle=False, repeat=False):
+    """Play all WAV files"""
+    print("🎵 Playing WAV files only")
+    play_all(shuffle=shuffle, repeat=repeat, file_filter='wav')
+
+def play_all_low(shuffle=False, repeat=False):
+    """Play all low quality files (16khz, 22khz, 8khz)"""
+    print("🎵 Playing low quality files only")
+    play_all(shuffle=shuffle, repeat=repeat, file_filter='low')
+
+def play_track(track_number, file_filter=None):
+    """Play a specific track by number
+    
+    Args:
+        track_number: Track number to play (1-based)
+        file_filter: Optional filter - 'mp3', 'wav', 'low'
+    """
+    files = get_all_audio_files(file_filter)
 
     if not files:
         print("No audio files found!")
@@ -191,9 +297,13 @@ def play_track(track_number):
     else:
         print(f"Track {track_number} not found. Available: 1-{len(files)}")
 
-def list_tracks():
-    """List all available tracks"""
-    files = get_all_audio_files()
+def list_tracks(file_filter=None):
+    """List all available tracks
+    
+    Args:
+        file_filter: Optional filter - 'mp3', 'wav', 'low'
+    """
+    files = get_all_audio_files(file_filter)
 
     if not files:
         print("\n✗ No audio files found!")
@@ -203,7 +313,15 @@ def list_tracks():
         print("  • Copy files to CIRCUITPY drive (/)")
         return
 
-    print(f"\nPlaylist ({len(files)} tracks):")
+    filter_msg = ""
+    if file_filter == 'mp3':
+        filter_msg = " (MP3 only)"
+    elif file_filter == 'wav':
+        filter_msg = " (WAV only)"
+    elif file_filter == 'low':
+        filter_msg = " (Low quality only)"
+
+    print(f"\nPlaylist ({len(files)} tracks{filter_msg}):")
     print("-" * 50)
     for i, filepath in enumerate(files, 1):
         filename = filepath.split('/')[-1]
@@ -212,8 +330,7 @@ def list_tracks():
     print("-" * 50)
 
 def play(filename, wait=True):
-    """
-    Play a file by name (searches both internal and SD card)
+    """Play a file by name (searches both internal and SD card)
 
     Args:
         filename: Name of the audio file (e.g., "sound.wav")
@@ -267,10 +384,15 @@ print("\n" + "=" * 50)
 print("Music Player Functions:")
 print("  play('song.wav')        - Play file by name")
 print("  play_all()              - Play all files")
+print("  play_all_mp3()          - Play all MP3 files")
+print("  play_all_wav()          - Play all WAV files")
+print("  play_all_low()          - Play low quality files")
 print("  play_all(shuffle=True)  - Play all shuffled")
 print("  play_all(repeat=True)   - Repeat playlist")
 print("  play_track(3)           - Play track #3")
 print("  list_tracks()           - List all tracks")
+print("  list_tracks('mp3')      - List MP3 files only")
+print("  list_tracks('low')      - List low quality only")
 print("  stop()                  - Stop playback")
 print("  is_playing()            - Check if playing")
 print("=" * 50)
