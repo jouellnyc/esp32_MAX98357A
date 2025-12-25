@@ -1,8 +1,6 @@
 # ESP32-S3 Audio Player with SD Card
 
 A complete audio player implementation using CircuitPython.
-<P>
-Using ESP32-S3-DevKitC-1-N8R8,  MAX98357A I2S amplifier, SD card storage, and 8 ohm speaker.
 
 <img width="620" height="410" alt="image" src="https://github.com/user-attachments/assets/1f45a891-cf0c-4fd3-8cee-0005e7e165b6" />
 
