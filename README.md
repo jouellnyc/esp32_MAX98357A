@@ -365,7 +365,7 @@ If the default pins don't work, try these alternatives:
 - SCK: GPIO 12 (default, can use others)
 
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
-You can play music with the same setup using this board BUT, in my experience:
+You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
 The ESP32 Feather has limited resources compared to newer ESP32-S3 boards.
 
