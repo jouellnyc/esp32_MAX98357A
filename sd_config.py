@@ -4,8 +4,6 @@ Single source of truth for SD card configuration
 """
 
 import board
-# https://www.amazon.com/dp/B09MHP42LY
-# ESP32-S3-DevKitC-1-N8R8 Development Board
 
 # ============================================
 # Wiring
@@ -24,7 +22,8 @@ SD_CS   = board.IO16
 # SD Settings
 # ============================================
 
-SD_BAUDRATE = 1_000_000
+#SD_BAUDRATE = 1_000_000
+SD_BAUDRATE = 4_000_000
 SD_MOUNT    = "/sd"
 
 SD_TEST_FILE = SD_MOUNT + "/test.txt"

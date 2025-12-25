@@ -11,31 +11,24 @@ import audiomp3
 
 import audio_config
 import sd_config
+import sdcard_helper
 
 print("=" * 50)
 print("ESP32-S3 Music Player")
 print("=" * 50)
 
 # ============= SD CARD SETUP =============
-print("\n[1/3] Checking for SD card...")
-
 SD_AVAILABLE = False
-
+print("\n[1/3] Checking for SD card...")
+  
 try:
-    # Initialize SPI for SD card (ESP32-S3 pins)
-    spi = busio.SPI(clock=sd_config.SD_SCK, MOSI=sd_config.SD_MOSI, MISO=sd_config.SD_MISO)
-
-    # Mount SD card (CS on GPIO 16, needs 5V!)
-    sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
-    vfs = storage.VfsFat(sd)
-    storage.mount(vfs, "/sd")
-
-    SD_AVAILABLE = True
-    print("✓ SD card mounted successfully!")
-
+    sdcard_helper.mount()
 except Exception as e:
     print(f"⚠ No SD card detected (this is OK!)")
     print(f"  Will use internal storage instead")
+else:
+    SD_AVAILABLE = True
+    print("✓ SD card ready for audio playback!")
 
 # ============= AUDIO SETUP (MAX98357A) =============
 print("\n[2/3] Initializing audio...")
@@ -50,12 +43,11 @@ audio = audiobusio.I2SOut(
 print("✓ Audio initialized!")
 
 # ============= MUSIC LIBRARY =============
-
 def get_audio_files(directory="/"):
     """Get all audio files from specified directory"""
     audio_files = []
     
-    os.sync()
+    # No sync needed for read operations
     try:
         for filename in os.listdir(directory):
             # Skip system files and directories

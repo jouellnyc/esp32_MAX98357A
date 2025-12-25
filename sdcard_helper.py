@@ -1,9 +1,11 @@
 #For testing / etc
+#sdcard_helper
 
-import busio
+import busio			
 import sdcardio
 import storage
 import os
+import time
 
 import sd_config
 
@@ -11,18 +13,19 @@ _spi = None
 _sd = None
 _vfs = None
 _mounted = False
+_last_print_time = 0  # Add this at module level with other globals
 
 
 def mount():
     """Initialize SPI and mount the SD card."""
     global _spi, _sd, _vfs, _mounted
-
+    
     if _mounted:
         print("✓ SD card already mounted")
         return True
-
+    
     print("Initializing SD card...")
-
+    
     try:
         # Initialize SPI
         _spi = busio.SPI(
@@ -30,7 +33,7 @@ def mount():
             MOSI=sd_config.SD_MOSI,
             MISO=sd_config.SD_MISO,
         )
-
+        
         # Create SD card + filesystem
         _sd = sdcardio.SDCard(
             _spi,
@@ -39,7 +42,22 @@ def mount():
         )
         _vfs = storage.VfsFat(_sd)
         storage.mount(_vfs, sd_config.SD_MOUNT)
-
+        
+        # CRITICAL: Let SD card settle after mount
+        import time
+        print("Waiting for SD card to stabilize...")
+        time.sleep(1.0)
+        
+        # Prime the directory cache with a dummy read
+        print("Initializing directory cache...")
+        try:
+            _ = os.listdir(sd_config.SD_MOUNT)
+        except:
+            pass  # Ignore errors on first read
+        
+        os.sync()
+        time.sleep(0.5)
+        
     except OSError as e:
         print(f"✗ Mount failed: {e}")
         print("\nTroubleshooting:")
@@ -55,16 +73,26 @@ def mount():
         print("✓ SD card mounted successfully!")
         return True
 
-
 def print_info():
     """Print SD card size and file list."""
+    global _last_print_time
+    
     if not _mounted:
         print("✗ SD card not mounted")
         return False
     
-    # Force filesystem sync before reading
-    os.sync()
+    # Rate limiting: enforce 250ms minimum between calls
+    current_time = time.monotonic()
+    time_since_last = current_time - _last_print_time
     
+    if _last_print_time > 0 and time_since_last < 0.25:
+        wait_time = 0.25 - time_since_last
+        print(f"[Rate limit: waiting {wait_time:.2f}s...]")
+        time.sleep(wait_time)
+    
+    _last_print_time = time.monotonic()
+    
+    # Read operations
     stats = os.statvfs(sd_config.SD_MOUNT)
     total_mb = (stats[0] * stats[2]) / (1024 * 1024)
     free_mb = (stats[0] * stats[3]) / (1024 * 1024)
@@ -84,6 +112,7 @@ def print_info():
         print("  (empty)")
     
     return True
+
 
 
 def test_sd(slow=False, count=60, interval=1):

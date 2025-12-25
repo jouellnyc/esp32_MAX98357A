@@ -1,12 +1,9 @@
 import board
 
-# https://www.amazon.com/dp/B09MHP42LY
-# ESP32-S3-DevKitC-1-N8R8 Development Board
-
 # ============================================
 # I2S Audio Configuration
 # ============================================
 
-I2S_BIT_CLOCK   = board.IO5   # BCLK
 I2S_WORD_SELECT = board.IO4   # LRC / WS
+I2S_BIT_CLOCK   = board.IO5   # BCLK
 I2S_DATA        = board.IO6   # DIN
