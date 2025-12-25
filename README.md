@@ -365,36 +365,25 @@ If the default pins don't work, try these alternatives:
 - SCK: GPIO 12 (default, can use others)
 
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
-
 You can play music with the same setup using this board BUT, in my experience:
 
 The ESP32 Feather has limited resources compared to newer ESP32-S3 boards.
 
-❌ What DOESN'T Work
+### What DOESN'T Work
+* 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
+* High bitrate MP3s - Decoder struggles, causes stuttering
+* Loading files to RAM - "memory allocation failed" errors (even for small files)
+* Multiple simultaneous file handles - Causes SD "corruption"
 
-44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
-High bitrate MP3s - Decoder struggles, causes stuttering
-Loading files to RAM - "memory allocation failed" errors (even for small files)
-Multiple simultaneous file handles - Causes SD "corruption"
+### What WORKS Perfectly
+**Audio Format: 16kHz mono WAV files**
 
-✅ What WORKS Perfectly
-Audio Format: 16kHz mono WAV files
-bash# Convert audio to ESP32-friendly format
+```bash
+# Convert audio to ESP32-friendly format
 ffmpeg -i input.mp3 -ar 16000 -ac 1 output_16khz.wav
 
-Why this works:
 
-16kHz sample rate = 1/4 the data rate of 44.1kHz
-Mono (1 channel) = Half the data vs stereo
-Total reduction: ~1/8th the bandwidth compared to CD-quality audio
-Result: Smooth playback with no stuttering, low CPU usage, minimal SD card bandwidth
 
-Alternative settings:
-
-22kHz mono - Also works well, slightly better quality
-8kHz mono - Works but noticeably lower quality, use only if desperate
-
- 
 ## Additional Resources
 
 - **CircuitPython Documentation:** https://docs.circuitpython.org/
