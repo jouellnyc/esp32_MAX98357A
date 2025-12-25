@@ -384,7 +384,7 @@ ffmpeg -i input.mp3 -ar 16000 -ac 1 output_16khz.wav
 ```
 See the update play.py that filters for lower quality wavs.
 
-- Buy this one with 2MB psram https://www.adafruit.com/product/5900 !
+- Buy this one with 2MB psram https://www.adafruit.com/product/5900
 - Not the one with only 512 total ram: https://www.adafruit.com/product/3591
 
 
