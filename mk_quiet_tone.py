@@ -5,6 +5,7 @@ import math
 def create_quiet_test_tone(filename="quiet_test.wav", duration=2, frequency=440, volume=0.05):
     """
     Create a very quiet test tone WAV file.
+    Used for testing audio if your family is sleeping.
 
     Args:
         filename: Output filename
