@@ -1,70 +1,51 @@
 import time
 import os
 import gc
-import sys
 
 import board
-import busio
-import sdcardio
-import storage
 import audiobusio
 import audiocore
 import audiomp3
 
 import audio_config
-import sd_config
 
 print("=" * 50)
 print("ESP32 Universal Music Player")
 print("=" * 50)
 
 # ============= BOARD DETECTION =============
-# Detect which board we're running on
 BOARD_NAME = board.board_id
-IS_S3 = "s3" in BOARD_NAME.lower()
 print(f"\nDetected: {BOARD_NAME}")
-if IS_S3:
-    print("  Using ESP32-S3 optimizations")
 
 # ============= SD CARD SETUP =============
 SD_AVAILABLE = False
+SDCARD_HELPER_AVAILABLE = False
+
 print("\n[1/3] Checking for SD card...")
 
-# First check if already mounted (handles REPL reloads)
 try:
-    existing_mount = storage.getmount("/sd")
-    print("✓ SD card already mounted!")
-    SD_AVAILABLE = True
-except OSError:
-    # Not mounted yet - try to mount
-    try:
-        if IS_S3:
-            # ESP32-S3: Use helper with settling time
-            try:
-                import sdcard_helper
-                if sdcard_helper.mount():
-                    SD_AVAILABLE = True
-                    print("✓ SD card ready (with S3 initialization)")
-            except ImportError:
-                print("⚠ sdcard_helper not found, using standard mount")
-                IS_S3 = False  # Fall back to standard method
-        
-        if not IS_S3 or not SD_AVAILABLE:
-            # Standard mount for Huzzah or if S3 helper failed
-            spi = busio.SPI(
-                clock=sd_config.SD_SCK,
-                MOSI=sd_config.SD_MOSI,
-                MISO=sd_config.SD_MISO
-            )
-            sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
-            vfs = storage.VfsFat(sd)
-            storage.mount(vfs, "/sd")
+    import sdcard_helper
+    SDCARD_HELPER_AVAILABLE = True
+    
+    # Check if already mounted
+    if sdcard_helper.is_mounted():
+        print("✓ SD card already mounted!")
+        SD_AVAILABLE = True
+    else:
+        # Mount it
+        if sdcard_helper.mount():
+            print("✓ SD card ready!")
             SD_AVAILABLE = True
-            print("✓ SD card mounted successfully!")
+        else:
+            print("⚠ No SD card detected (this is OK!)")
+            print("  Will use internal storage instead")
             
-    except Exception as e:
-        print(f"⚠ No SD card detected (this is OK!)")
-        print(f"  Will use internal storage instead")
+except ImportError:
+    print("⚠ sdcard_helper not found - SD card support disabled")
+    print("  Will use internal storage only")
+except Exception as e:
+    print(f"⚠ SD card error: {e}")
+    print("  Will use internal storage instead")
 
 # ============= AUDIO SETUP (MAX98357A) =============
 print("\n[2/3] Initializing audio...")
@@ -76,6 +57,52 @@ audio = audiobusio.I2SOut(
 )
 
 print("✓ Audio initialized!")
+
+# ============= SD CARD HELPERS =============
+
+def refresh_sd():
+    """Remount SD card to recover from failed state.
+    
+    Use this if files disappear or SD card becomes unresponsive.
+    
+    Returns:
+        bool: True if refresh successful, False otherwise
+    """
+    global SD_AVAILABLE
+    
+    if not SDCARD_HELPER_AVAILABLE:
+        print("✗ sdcard_helper not available")
+        return False
+    
+    if not SD_AVAILABLE:
+        print("✗ No SD card to refresh")
+        return False
+    
+    print("\n🔄 Refreshing SD card...")
+    
+    try:
+        import sdcard_helper
+        
+        # Unmount
+        sdcard_helper.unmount()
+        print("  Unmounted...")
+        
+        time.sleep(1)
+        
+        # Remount
+        if sdcard_helper.mount():
+            SD_AVAILABLE = True
+            print("✓ SD card refreshed and ready!")
+            return True
+        else:
+            SD_AVAILABLE = False
+            print("✗ Refresh failed")
+            return False
+            
+    except Exception as e:
+        print(f"✗ Refresh error: {e}")
+        SD_AVAILABLE = False
+        return False
 
 # ============= MUSIC LIBRARY =============
 
@@ -93,7 +120,14 @@ def get_audio_files(directory="/", file_filter=None):
     audio_files = []
     
     try:
-        for filename in os.listdir(directory):
+        # Use sdcard_helper's rate-limited list_files for SD card
+        if directory == "/sd" and SDCARD_HELPER_AVAILABLE:
+            import sdcard_helper
+            files = sdcard_helper.list_files(directory)
+        else:
+            files = os.listdir(directory)
+        
+        for filename in files:
             # Skip system files and directories
             if filename.startswith('.') or filename == 'sd':
                 continue
@@ -123,7 +157,9 @@ def get_audio_files(directory="/", file_filter=None):
         audio_files.sort()
 
     except Exception as e:
-        print(f"Error reading directory: {e}")
+        print(f"⚠ Error reading directory {directory}: {e}")
+        if directory == "/sd":
+            print("  💡 Tip: Try refresh_sd() to fix SD card issues")
 
     return audio_files
 
@@ -147,6 +183,8 @@ def get_all_audio_files(file_filter=None):
         if sd_files:
             print(f"  Found {len(sd_files)} file(s) on SD card")
             all_files.extend(sd_files)
+        elif not sd_files and SD_AVAILABLE:
+            print("  ⚠ SD card returned no files (may need refresh)")
 
     return all_files
 
@@ -194,6 +232,8 @@ def play_file(filepath):
         raise
     except Exception as e:
         print(f"  ✗ Error: {e}")
+        if "sd/" in filepath.lower():
+            print("  💡 Tip: Try refresh_sd() if SD card files won't play")
         audio.stop()
         gc.collect()
         return False
@@ -221,6 +261,7 @@ def play_all(shuffle=False, repeat=False, file_filter=None):
         print("\n📁 To add files:")
         if SD_AVAILABLE:
             print("  • Copy .wav or .mp3 files to SD card, OR")
+            print("  • If SD files are missing, try: refresh_sd()")
         print("  • Copy .wav or .mp3 files to CIRCUITPY drive")
         print("\n  Supported formats: .wav, .mp3")
         return
@@ -290,6 +331,8 @@ def play_track(track_number, file_filter=None):
 
     if not files:
         print("No audio files found!")
+        if SD_AVAILABLE:
+            print("💡 Tip: Try refresh_sd() if SD files are missing")
         return
 
     if 1 <= track_number <= len(files):
@@ -310,6 +353,7 @@ def list_tracks(file_filter=None):
         print("\n📁 To add files:")
         if SD_AVAILABLE:
             print("  • Copy files to SD card (/sd/), OR")
+            print("  • If SD files are missing, try: refresh_sd()")
         print("  • Copy files to CIRCUITPY drive (/)")
         return
 
@@ -340,15 +384,34 @@ def play(filename, wait=True):
         play("hello.wav")
     """
     # Search in internal storage first
-    if filename in os.listdir("/"):
-        filepath = f"/{filename}"
-    # Then search SD card
-    elif SD_AVAILABLE and filename in os.listdir("/sd"):
-        filepath = f"/sd/{filename}"
-    else:
-        print(f"File '{filename}' not found!")
-        print("Available files:")
-        list_tracks()
+    try:
+        if filename in os.listdir("/"):
+            filepath = f"/{filename}"
+        # Then search SD card
+        elif SD_AVAILABLE:
+            # Use sdcard_helper's rate-limited list if available
+            if SDCARD_HELPER_AVAILABLE:
+                import sdcard_helper
+                sd_files = sdcard_helper.list_files("/sd")
+            else:
+                sd_files = os.listdir("/sd")
+                
+            if filename in sd_files:
+                filepath = f"/sd/{filename}"
+            else:
+                print(f"File '{filename}' not found!")
+                print("Available files:")
+                list_tracks()
+                return False
+        else:
+            print(f"File '{filename}' not found!")
+            print("Available files:")
+            list_tracks()
+            return False
+    except Exception as e:
+        print(f"Error searching for file: {e}")
+        if SD_AVAILABLE:
+            print("💡 Tip: Try refresh_sd() if having SD card issues")
         return False
 
     return play_file(filepath) if wait else audio.play(filepath)
@@ -366,7 +429,7 @@ def is_playing():
 # Show storage status
 print("\n📦 Storage:")
 if SD_AVAILABLE:
-    print("  ✓ SD card available")
+    print("  ✓ SD card available (read-only)")
 print("  ✓ Internal storage available")
 
 # List all tracks
@@ -393,6 +456,10 @@ print("  play_track(3)           - Play track #3")
 print("  list_tracks()           - List all tracks")
 print("  list_tracks('mp3')      - List MP3 files only")
 print("  list_tracks('low')      - List low quality only")
+if SD_AVAILABLE:
+    print("  refresh_sd()            - Refresh SD if files disappear ⚡")
 print("  stop()                  - Stop playback")
 print("  is_playing()            - Check if playing")
+if SD_AVAILABLE:
+    print("\n💡 If SD files disappear, just run: refresh_sd()")
 print("=" * 50)
