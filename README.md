@@ -389,6 +389,73 @@ See the update play.py that filters for lower quality wavs.
 - I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591
 
 
+## SD Card Support
+
+This music player supports reading audio files from SD cards using the SPI interface.
+
+### Quick Setup
+```python
+import sdcard_helper
+
+# Mount SD card with proper initialization
+if sdcard_helper.mount():
+    print("SD card ready!")
+    
+    # Play music from SD card
+    play("/sd/song.mp3")
+```
+
+### Important: Use sdcard_helper
+
+CircuitPython's `sdcardio` module has known timing issues that can cause:
+- Empty directories after soft reboot
+- Files appearing only on second access
+- Device hangs during playback
+
+**Solution:** This project uses the `sdcard_helper.py` module which handles proper initialization with settling time and rate limiting.
+
+
+### Full SD Card Documentation
+
+**👉 For complete SD card setup, troubleshooting, and technical details:**  
+**See [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)**
+
+That repository contains:
+- Complete SD card initialization guide
+- Wiring diagrams for your board
+- Power requirements (100µF capacitor placement)
+- Detailed explanation of caching/settling issues
+- Links to related CircuitPython issues
+- API reference for `sdcard_helper`
+
+### Audio Files on SD Card
+
+**Supported formats:**
+- **MP3:** Any bitrate, mono or stereo
+- **WAV:** 16-bit PCM, 22050Hz or 44100Hz recommended for best quality
+
+Place audio files in the root of your SD card (`/sd/`) or subdirectories.
+```python
+# Play specific file from SD
+play("/sd/music/song.mp3")
+
+# Play all files (scans internal storage AND SD card)
+play_all()
+
+# Play only MP3 files from SD
+play_all_mp3()
+```
+
+### SD Card Hardware Requirements
+
+For SD card support you'll need:
+- SD card reader module with SPI interface
+- **100µF capacitor on SD VCC** (critical for stability)
+- Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader#hardware-setup)
+
+**Note:** Copy `sdcard_helper.py` and `sd_config.py` from the [hiletgo_sdcard_reader](https://github.com/jouellnyc/hiletgo_sdcard_reader) repository to your CircuitPython device.
+
+
 ## Additional Resources
 
 - **CircuitPython Documentation:** https://docs.circuitpython.org/
