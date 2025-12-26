@@ -19,6 +19,7 @@ import sdcardio
 import storage
 import os
 import time
+import gc
 import sd_config
 
 # Module-level state
@@ -44,66 +45,36 @@ def _check_rate_limit():
 
 
 def mount():
-    """Initialize SPI and mount the SD card with proper settling."""
-    global _spi, _sd, _vfs, _mounted, _last_operation_time
-    
-    if _mounted:
-        print("✓ SD card already mounted")
-        return True
-    
-    print("Initializing SD card...")
-    
+    global _mounted
+    if _mounted: return True
+
     try:
-        # Initialize SPI
-        _spi = busio.SPI(
-            clock=sd_config.SD_SCK,
-            MOSI=sd_config.SD_MOSI,
-            MISO=sd_config.SD_MISO,
-        )
+        # Use the pins that just passed your Hardware Test
+        spi = busio.SPI(sd_config.SD_SCK, MOSI=sd_config.SD_MOSI, MISO=sd_config.SD_MISO)
         
-        # Create SD card + filesystem
-        _sd = sdcardio.SDCard(
-            _spi,
-            sd_config.SD_CS,
-            baudrate=sd_config.SD_BAUDRATE,
-        )
-        _vfs = storage.VfsFat(_sd)
-        storage.mount(_vfs, sd_config.SD_MOUNT, readonly=True)  # Read-only for stability
+        # Initialize the SD Card hardware
+        sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
         
-        # CRITICAL: Let SD card settle after mount
-        print("Waiting for SD card to stabilize...")
-        time.sleep(1.0)
+        # Mount the filesystem
+        vfs = storage.VfsFat(sd)
+        storage.mount(vfs, sd_config.SD_MOUNT)
         
-        # Prime the directory cache with a dummy read
-        print("Initializing directory cache...")
-        try:
-            _ = os.listdir(sd_config.SD_MOUNT)
-        except:
-            pass  # Ignore errors on first read
-        
-        os.sync()
-        time.sleep(0.5)
+        # CRITICAL: Do NOT list files or sync yet. 
+        # Just wait for the electrical spike to settle.
+        time.sleep(0.2) 
         
         _mounted = True
-        _last_operation_time = time.monotonic()  # Set timestamp to prevent immediate rapid access
-        print("✓ SD card mounted successfully!")
+        print("✓ SD Mounted successfully")
         return True
         
-    except OSError as e:
+    except Exception as e:
         print(f"✗ Mount failed: {e}")
-        print("\nTroubleshooting:")
-        print("1. Check SD card is inserted properly")
-        print("2. Ensure SD card is FAT32 formatted")
-        print("3. Try different CS pin")
-        print("4. Check wiring connections")
-        print("5. Verify VCC is 3.3V (NOT 5V)")
-        print("6. Add 100µF capacitor to SD VCC")
-        print("7. Try slower baudrate (100000)")
         return False
+    
 
 
 def unmount():
-    """Unmount the SD card."""
+    """Unmount the SD card with aggressive cleanup."""
     global _spi, _sd, _vfs, _mounted, _last_operation_time
     
     if not _mounted:
@@ -111,18 +82,43 @@ def unmount():
         return True
     
     try:
-        storage.umount(sd_config.SD_MOUNT)
+        # Unmount filesystem first
+        try:
+            storage.umount(sd_config.SD_MOUNT)
+        except:
+            pass  # Might already be unmounted
+        
+        # Aggressively clean up SPI and related objects
         if _spi:
-            _spi.deinit()
+            try:
+                _spi.deinit()
+            except:
+                pass  # Already deinitialized
+        
+        # Clear all references
         _spi = None
         _sd = None
         _vfs = None
+        
+        # Force garbage collection to release pins
+        gc.collect()
+        
+        # Give hardware time to release pins
+        time.sleep(0.5)
+        
         _mounted = False
         _last_operation_time = 0
         print("✓ SD card unmounted")
         return True
+        
     except Exception as e:
         print(f"✗ Unmount failed: {e}")
+        # Force cleanup anyway
+        _spi = None
+        _sd = None
+        _vfs = None
+        _mounted = False
+        gc.collect()
         return False
 
 
@@ -213,27 +209,19 @@ def test_sd(slow=False, count=60, interval=1):
         return False
 
 
-def list_files(path=None):
-    """
-    List all files in a directory (rate-limited).
-    
-    Args:
-        path: Directory path (default: SD mount point)
-    
-    Returns:
-        List of filenames, or empty list on error
-    """
+def list_files(path=None):  # Add 'path=None' here
+    """List all files in a directory (rate-limited)."""
     if not _mounted:
         print("✗ SD card not mounted")
         return []
     
     _check_rate_limit()
     
-    if path is None:
-        path = sd_config.SD_MOUNT
+    # Use the provided path, or default to the config mount point
+    search_path = path if path else sd_config.SD_MOUNT
     
     try:
-        return os.listdir(path)
+        return os.listdir(search_path)
     except Exception as e:
         print(f"✗ Error listing files: {e}")
         return []
