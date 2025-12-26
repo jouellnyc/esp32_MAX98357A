@@ -8,7 +8,8 @@ A complete audio player implementation using CircuitPython.
 
 ## Hardware Requirements
 
-* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY)
+* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below)
+* Adafruit Huzzah (See below)
 * [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
 * [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
 * [4-8 ohm Speaker](https://www.adafruit.com/product/1669)
@@ -23,7 +24,7 @@ Author's Note:
 - That worked flawlessly using it's internal sd and did not need any 100 uF capacitors.
 - I leaned on Claude Ai extensively as the sd card + amplifier took lots of troubleshooting to get right.
 - See [link](https://github.com/jouellnyc/hiletgo_sdcard_reader) for those tshoot details.
-
+- These are not professional sound systems, your experience will be varied!
 
 ## Software Requirements
 
@@ -368,7 +369,10 @@ If the default pins don't work, try these alternatives:
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
-The ESP32 Feather has limited resources compared to newer ESP32-S3 boards.
+The ESP32 Feather has limited resources compared to newer ESP32-S3 boards, but is very stable with the Hiletgo SD card reader.
+
+In the end it performed better as the DEV KIT C crashed too often with that sd card reader.
+
 
 ### What DOESN'T Work
 * 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
