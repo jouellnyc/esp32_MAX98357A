@@ -369,85 +369,65 @@ If the default pins don't work, try these alternatives:
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
-The ESP32 Feather has limited resources compared to newer ESP32-S3 boards, but is very stable with the Hiletgo SD card reader.
+Although the ESP32 Feather has limited resources (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
 
-In the end it performed better as the DEV KIT C crashed too often with that sd card reader.
+In the end it performed better as the DEV KIT C crashed/hung too often with that sd card reader (5V or even 3.X Volts).
 
 
-### What DOESN'T Work
+### What DOESN'T Work with the Huzzah
 * 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
 * High bitrate MP3s - Decoder struggles, causes stuttering
 * Loading files to RAM - "memory allocation failed" errors (even for small files)
 * Multiple simultaneous file handles - Causes SD "corruption"
 
 ### What WORKS Perfectly
-**Audio Format: 16kHz mono WAV files**
+**Audio Format: 16kHz mono WAV files (and most 22kHz)**
 
 ```bash
 # Convert audio to ESP32-friendly format
 ffmpeg -i input.mp3 -ar 16000 -ac 1 output_16khz.wav
+ffmpeg -i input.mp3 -ar 22050 -ac 1 output_16khz.wav
 ```
-See the update play.py that filters for lower quality wavs.
+
+See the updated play.py that filters for lower quality wavs.
 
 - If you want to try with Adafruit, buy this one with 2MB psram https://www.adafruit.com/product/5900 (not tested, but very likely more capable)
-- I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591
+- I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591 (but that's the one I used here)
 
 
 ## SD Card Support
 
 This music player supports reading audio files from SD cards using the SPI interface.
 
-### Quick Setup
-```python
-import sdcard_helper
-
-# Mount SD card with proper initialization
-if sdcard_helper.mount():
-    print("SD card ready!")
-    
-    # Play music from SD card
-    play("/sd/song.mp3")
-```
-
 ### Important: Use sdcard_helper
 
-CircuitPython's `sdcardio` module has known timing issues that can cause:
+CircuitPython's `sdcardio` module appears to have timing issues that can cause:
 - Empty directories after soft reboot
 - Files appearing only on second access
 - Device hangs during playback
 
-**Solution:** This project uses the `sdcard_helper.py` module which handles proper initialization with settling time and rate limiting.
+**Solution:** This project uses the `sdcard_helper.py` module which handles  initialization with settling time and rate limiting.
 
 
 ### Full SD Card Documentation
 
-**👉 For complete SD card setup, troubleshooting, and technical details:**  
+**👉 For more SD troubleshooting, and details:**  
 **See [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)**
-
-That repository contains:
-- Complete SD card initialization guide
-- Wiring diagrams for your board
-- Power requirements (100µF capacitor placement)
-- Detailed explanation of caching/settling issues
-- Links to related CircuitPython issues
-- API reference for `sdcard_helper`
 
 ### Audio Files on SD Card
 
 **Supported formats:**
 - **MP3:** Any bitrate, mono or stereo
-- **WAV:** 16-bit PCM, 22050Hz or 44100Hz recommended for best quality
+- **WAV:** 16-bit PCM, 22050Hz or 44100Hz recommended for best quality (BUT see above about what actually works well)
 
 Place audio files in the root of your SD card (`/sd/`) or subdirectories.
 ```python
-# Play specific file from SD
-play("/sd/music/song.mp3")
 
 # Play all files (scans internal storage AND SD card)
 play_all()
 
-# Play only MP3 files from SD
-play_all_mp3()
+# Play all lower quality files 
+play.play_all_low()
 ```
 
 ### SD Card Hardware Requirements
@@ -456,8 +436,6 @@ For SD card support you'll need:
 - SD card reader module with SPI interface
 - **100µF capacitor on SD VCC** (critical for stability)
 - Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader#hardware-setup)
-
-**Note:** Copy `sdcard_helper.py` and `sd_config.py` from the [hiletgo_sdcard_reader](https://github.com/jouellnyc/hiletgo_sdcard_reader) repository to your CircuitPython device.
 
 
 ## Additional Resources
