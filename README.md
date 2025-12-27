@@ -23,8 +23,8 @@ Author's Note:
 
 - I did the same with an [Adafruit Metro ESP32-S3](https://www.adafruit.com/product/5500) with 16 MB Flash 8 MB PSRAM.  
 - That worked flawlessly using it's internal sd and did not need any 100 uF capacitors.
-- I leaned on Claude Ai extensively as the sd card + amplifier took lots of troubleshooting to get right.
-- See [link](https://github.com/jouellnyc/hiletgo_sdcard_reader) for those tshoot details.
+- I leaned on Claude Ai extensively as the sd card took lots of troubleshooting to get identify what works and what does not. 
+- See [link](https://github.com/jouellnyc/hiletgo_sdcard_reader) for details.
 - These are not professional sound systems, your experience will be varied!
 
 ## Software Requirements
