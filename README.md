@@ -415,6 +415,7 @@ CircuitPython's `sdcardio` module appears to have timing issues that can cause:
 - **WAV:** 16-bit PCM, 22050Hz or 44100Hz recommended for best quality (BUT see above about what actually works well)
 
 Place audio files in the root of your SD card (`/sd/`) or subdirectories.
+
 ```python
 
 # Play all files (scans internal storage AND SD card)
@@ -423,13 +424,6 @@ play_all()
 # Play all lower quality files 
 play.play_all_low()
 ```
-
-### SD Card Hardware Requirements
-
-For SD card support you'll need:
-- SD card reader module with SPI interface
-- **100µF capacitor on SD VCC** (critical for stability)
-- Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader)
 
 ** For more SD troubleshooting, and details, see  [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader) **
 
