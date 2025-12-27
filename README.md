@@ -419,6 +419,7 @@ play.play_all_low()
 - **MAX98357A Datasheet:** https://datasheets.maximintegrated.com/en/ds/MAX98357A-MAX98357B.pdf
 - **Audio conversion with ffmpeg:** https://ffmpeg.org/
 - **Adafruit MP3 Page** - https://learn.adafruit.com/mp3-playback-with-circuitpython/mp3-capabilities-by-microcontroller
+- **Adafruit SD Page** - https://learn.adafruit.com/adafruit-microsd-spi-sdio/adafruit-circuitpython-sd
 
 ## License
 This project is provided as-is for educational and personal use.
