@@ -46,11 +46,13 @@ Author's Note:
 
 ### MAX98357A Audio Amplifier
 
+(see audio_config.py for each device)
+
 | MAX98357A Pin | ESP32 Pin | Notes |
 |---------------|--------------|-------|
-| LRC (LRCLK)   | GPIO 4       | Word Select |
-| BCLK          | GPIO 5       | Bit Clock |
-| DIN           | GPIO 6       | Data Input |
+| LRC (LRCLK)   | GPIO X       | Word Select |
+| BCLK          | GPIO Y       | Bit Clock |
+| DIN           | GPIO Z       | Data Input |
 | GAIN          | 5V           | Maximum volume (15dB) |
 | SD            | 5V           | Shutdown control (HIGH = ON) |
 | VIN           | 5V           | Power input |
@@ -62,12 +64,14 @@ Author's Note:
 
 ### SD Card Module
 
+(see sd_config.py for each device)
+
 | SD Module Pin | ESP32-S3 Pin | Notes |
 |---------------|--------------|-------|
-| CS            | GPIO 16      | Chip Select |
-| MOSI (DI)     | GPIO 11      | Data In |
-| MISO (DO)     | GPIO 13      | Data Out |
-| SCK (CLK)     | GPIO 12      | Clock |
+| CS            | GPIO X      | Chip Select |
+| MOSI (DI)     | GPIO Y      | Data In |
+| MISO (DO)     | GPIO Z      | Data Out |
+| SCK (CLK)     | GPIO Q      | Clock |
 | VCC           | 5V           | **IMPORTANT: Must use 5V** |
 | GND           | GND          | Ground |
 
