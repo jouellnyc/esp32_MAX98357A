@@ -436,23 +436,10 @@ For SD card support you'll need:
 
 
 ## Additional Resources
-
 - **CircuitPython Documentation:** https://docs.circuitpython.org/
-- **ESP32-S3 Datasheet:** https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf
 - **MAX98357A Datasheet:** https://datasheets.maximintegrated.com/en/ds/MAX98357A-MAX98357B.pdf
 - **Audio conversion with ffmpeg:** https://ffmpeg.org/
 - **Adafruit MP3 Page** - https://learn.adafruit.com/mp3-playback-with-circuitpython/mp3-capabilities-by-microcontroller
 
 ## License
-
 This project is provided as-is for educational and personal use.
-
-## Contributing
-
-Issues and improvements are welcome. Please test thoroughly before submitting changes.
-
-## Acknowledgments
-
-- Adafruit for CircuitPython and excellent documentation
-- Espressif for ESP32-S3 hardware
-- Community contributions and troubleshooting insights
