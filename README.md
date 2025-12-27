@@ -8,8 +8,8 @@ A complete audio player implementation using CircuitPython.
 
 ## Hardware Requirements
 
-* [Waveshare RP2350-Plus](https://www.waveshare.com/rp2350-plus.htm) (Recommended) OR
-* Adafruit Huzzah (Recommended See below) OR
+* [Waveshare RP2350-Plus](https://www.waveshare.com/rp2350-plus.htm) (Strongly recommended) or
+* Adafruit Huzzah (Recommended but see below) or 
 * [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not recomended in the end, but did partially work)
 * [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
 * [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
