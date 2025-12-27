@@ -105,29 +105,22 @@ Power Rails:
 
   GND ─┬─── SD Card GND
        ├─── MAX98357A GND
-       ├─── MAX98357A GND (or left floating or set to 3.3V ) (see audio_config.py for GAIN settings) 
+       ├─── MAX98357A GAIN (or left floating or set to 3.3V ) (see audio_config.py for GAIN settings) 
        └─── ESP32-S3 GND
        └─── External 5V GND
 
-Signals:
-  ESP32-S3          MAX98357A
+Signals (Dev Kit C example) 
+  ESP32           MAX98357A
     GPIO 4    ───►   LRC
     GPIO 5    ───►   BCLK
     GPIO 6    ───►   DIN
 
-  ESP32-S3          SD Card
+  ESP32            SD Card
     GPIO 16   ───►   CS
     GPIO 11   ───►   MOSI
     GPIO 13   ───►   MISO
     GPIO 12   ───►   SCK
 ```
-
-## GPIO Pin Notes
-
-**Avoid these pins on ESP32-S3-DevKitC-1-N8R8:**
-- **GPIO 8, 9:** Used by PSRAM (not available)
-- **GPIO 19, 20:** Used by USB (avoid)
-- **GPIO 0:** Boot button (can cause boot issues)
 
 ## SD Card Preparation
 
