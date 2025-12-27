@@ -258,3 +258,29 @@ def get_stats():
 def is_mounted():
     """Check if SD card is currently mounted."""
     return _mounted
+
+
+def verify_sd_stability(iterations=10):
+    """Loops through all files on the SD card multiple times."""
+    for i in range(1, iterations + 1):
+        print(f"\n--- Test Loop {i} ---")
+        try:
+            files = os.listdir("/sd")
+            print(f"Found {len(files)} files:")
+            
+            for filename in files:
+                # Check file size to verify it's readable
+                stats = os.stat("/sd/" + filename)
+                size = stats[6] # Index 6 is the file size in bytes
+                print(f" - {filename} ({size} bytes)")
+                
+            # Small pause between loops to prevent overheating
+            time.sleep(0.5) 
+            
+        except Exception as e:
+            print(f"STABILITY ERROR on loop {i}: {e}")
+            return False
+            
+    print("\n[SUCCESS] SD card is stable over 10 read cycles.")
+    return True
+

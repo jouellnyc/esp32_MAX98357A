@@ -1,6 +1,6 @@
 """
 sd_config.py
-Universal configuration for Huzzah32 (ESP32) and DevKit-C (ESP32-S3)
+Universal configuration for RP2350, ESP32, and ESP32-S3
 """
 
 import board
@@ -9,26 +9,47 @@ import board
 board_type = board.board_id
 print(f"--- SD Config: Detected {board_type} ---")
 
-if "huzzah32" in board_type and "s3" not in board_type:
-    # ============================================
-    # ESP32 HUZZAH (Original) Pins
-    # ============================================
+# ============================================
+# RP2350-Plus (Waveshare) - YOUR NEW BOARD
+# ============================================
+if "rp2350" in board_type:
+    SD_SCK  = board.GP18
+    SD_MOSI = board.GP19
+    SD_MISO = board.GP16
+    SD_CS   = board.GP17
+    # 12MHz: The "Goldilocks" speed we found for audio stability
+    SD_BAUDRATE = 12_000_000
+
+# ============================================
+# ESP32 HUZZAH (Original) Pins
+# ============================================
+elif "huzzah32" in board_type and "s3" not in board_type:
     SD_SCK  = board.SCK   # GPIO 5
     SD_MOSI = board.MOSI  # GPIO 18
     SD_MISO = board.MISO  # GPIO 19
     SD_CS   = board.A5    # GPIO 4
     SD_BAUDRATE = 4_000_000
 
-else:
-    # ============================================
-    # ESP32-S3 DevKit-C Pins
-    # ============================================
+# ============================================
+# ESP32-S3 DevKit-C Pins
+# ============================================
+elif "s3" in board_type:
     SD_SCK  = board.IO12
     SD_MOSI = board.IO11
     SD_MISO = board.IO13
     SD_CS   = board.IO16
-    # Note: Using 100k for stability as per your DevKit-C working config
     SD_BAUDRATE = 100_000 
+
+# ============================================
+# Fallback / Default (Just in case)
+# ============================================
+else:
+    print("Warning: Unknown board. Using default SPI pins.")
+    SD_SCK  = board.SCK
+    SD_MOSI = board.MOSI
+    SD_MISO = board.MISO
+    SD_CS   = board.D5
+    SD_BAUDRATE = 1_000_000
 
 # ============================================
 # Shared Settings
