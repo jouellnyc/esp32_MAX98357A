@@ -348,27 +348,12 @@ audio.play(generate_tone())
 - File size: ~10 MB per minute
 
 ### Memory Considerations
-
 The ESP32-S3-DevKitC-1-N8R8 has:
 - 8MB Flash (CIRCUITPY storage)
 - 8MB PSRAM (for large buffers)
+(but again was not reliable in the end)
 
 For large music libraries, use SD card storage.
-
-## Alternative Pin Configurations
-
-If the default pins don't work, try these alternatives:
-
-**I2S Audio (any combination):**
-- BCLK: GPIO 5, 14, 17, 35
-- LRC: GPIO 4, 15, 18, 36
-- DIN: GPIO 6, 13, 16, 37
-
-**SPI SD Card:**
-- CS: GPIO 16, 14, 15, 17, 18, 21
-- MOSI: GPIO 11 (default, can use others)
-- MISO: GPIO 13 (default, can use others)
-- SCK: GPIO 12 (default, can use others)
 
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
