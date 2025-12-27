@@ -365,7 +365,8 @@ You can play music with the same general setup (different pins obviously) using 
 - I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591 (but that's the one I used here)
 
 ### What to avoid ... Generally 
-* 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
+* 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)..
+* ...However sometimes 44.1kz  worked ok - your experience may vary
 * High bitrate MP3s - Decoder struggles, causes stuttering
 * Loading files to RAM - "memory allocation failed" errors (even for small files)
 * Multiple simultaneous file handles - Causes SD "corruption"
