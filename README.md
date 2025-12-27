@@ -9,7 +9,7 @@ A complete audio player implementation using CircuitPython.
 ## Hardware Requirements
 
 * Adafruit Huzzah (See below)
-* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not reccomended in the end, partially worked)
+* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not recomended in the end, but partially worked)
 * [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
 * [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
 * [4-8 ohm Speaker](https://www.adafruit.com/product/1669)
