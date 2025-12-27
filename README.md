@@ -369,7 +369,7 @@ If the default pins don't work, try these alternatives:
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
-Although the ESP32 Feather has limited resources (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
+Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
 
 In the end it performed better as the DEV KIT C crashed/hung too often with that sd card reader (5V or even 3.X Volts).
 
