@@ -353,6 +353,7 @@ For large music libraries, use SD card storage.
 - It worked flawlessly and easily with the HiLetGo SD carder Reader.
 - It's sound was the best overall and could set it's spi speed to the highest working speed.
 - Overall, highly recommend for this project! (Did not try it until after I named the repo!)
+- This board was able to reliably play WAVs at 44100Hz, 2ch, 16bit
 
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
