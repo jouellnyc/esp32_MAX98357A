@@ -431,8 +431,7 @@ For SD card support you'll need:
 - **100µF capacitor on SD VCC** (critical for stability)
 - Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader)
 
-**👉 For more SD troubleshooting, and details:**  
-**See [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)**
+** For more SD troubleshooting, and details, see  [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader) **
 
 
 ## Additional Resources
