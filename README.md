@@ -360,9 +360,10 @@ You can play music with the same general setup (different pins obviously) using 
 - Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
 - In the end it performed better than the DEV KIT C (which crashed/hung too often) with the Hiletdo sd card reader (5V or even 3.X Volts). 
 - But a worse performance than the Waveshare RP2350
+- If you want to try with Adafruit, buy this one with 2MB psram https://www.adafruit.com/product/5900 (not tested, but very likely more capable)
+- I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591 (but that's the one I used here)
 
-
-### What DOESN'T Work with the Huzzah
+### What to avoid ... Generally 
 * 44.1kHz stereo WAV - Causes "jackhammer" effect (buffer underruns)
 * High bitrate MP3s - Decoder struggles, causes stuttering
 * Loading files to RAM - "memory allocation failed" errors (even for small files)
@@ -378,9 +379,6 @@ ffmpeg -i input.mp3 -ar 22050 -ac 1 output_16khz.wav
 ```
 
 See the updated play.py that filters for lower quality wavs.
-
-- If you want to try with Adafruit, buy this one with 2MB psram https://www.adafruit.com/product/5900 (not tested, but very likely more capable)
-- I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591 (but that's the one I used here)
 
 
 ## SD Card Support
