@@ -8,8 +8,9 @@ A complete audio player implementation using CircuitPython.
 
 ## Hardware Requirements
 
-* Adafruit Huzzah (See below)
-* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not recomended in the end, but partially worked)
+* [Waveshare RP2350-Plus](https://www.waveshare.com/rp2350-plus.htm)(Recommended) OR
+* Adafruit Huzzah (Recommended See below) OR
+* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not recomended in the end, but did partially work)
 * [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
 * [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
 * [4-8 ohm Speaker](https://www.adafruit.com/product/1669)
@@ -30,6 +31,7 @@ Author's Note:
 
 - **Adafruit CircuitPython** (tested on 10.0.3)
 - Download from: https://circuitpython.org/board/espressif_esp32s3_devkitc_1_n8r8/
+- I would not suggest using MicroPython with an sdcard reader with level shifters.
 
 ### Required CircuitPython Libraries
 
@@ -348,12 +350,17 @@ The ESP32-S3-DevKitC-1-N8R8 has:
 
 For large music libraries, use SD card storage.
 
+## A word about the Waveshare RP2350-Plus 
+- It worked flawlessly and easily with the HiLetGo SD carder Reader.
+- It's sound was the best overall and could set it's spi speed to the highest working speed.
+- Overall, highly recommend for this project! (Did not try it until after I named the repo!)
+
 ## A word about the Adafruit HUZZAH32 – ESP32 Feather Board
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
-Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
-
-In the end it performed better as the DEV KIT C crashed/hung too often with that sd card reader (5V or even 3.X Volts). 
+- Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
+- In the end it performed better than the DEV KIT C (which crashed/hung too often) with the Hiletdo sd card reader (5V or even 3.X Volts). 
+- But a worse perforance that the Waveshare RP2350-Pl
 
 
 ### What DOESN'T Work with the Huzzah
