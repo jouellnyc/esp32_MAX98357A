@@ -99,13 +99,13 @@ Power Rails:
 
   5V  ─┬─── SD Card VCC (with 100µF cap to GND)
        ├─── MAX98357A VIN (with 100µF cap to GND)
-       ├─── MAX98357A GAIN
        └─── MAX98357A SD
 
   An external spliced usb cable would work here...
 
   GND ─┬─── SD Card GND
        ├─── MAX98357A GND
+       ├─── MAX98357A GND (or left floating or set to 3.3V ) (see audio_config.py for GAIN settings) 
        └─── ESP32-S3 GND
        └─── External 5V GND
 
