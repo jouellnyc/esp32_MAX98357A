@@ -46,7 +46,7 @@ Author's Note:
 
 ### MAX98357A Audio Amplifier
 
-| MAX98357A Pin | ESP32-S3 Pin | Notes |
+| MAX98357A Pin | ESP32 Pin | Notes |
 |---------------|--------------|-------|
 | LRC (LRCLK)   | GPIO 4       | Word Select |
 | BCLK          | GPIO 5       | Bit Clock |
