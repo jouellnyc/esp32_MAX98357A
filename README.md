@@ -371,7 +371,7 @@ You can play music with the same general setup (different pins obviously) using 
 
 Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
 
-In the end it performed better as the DEV KIT C crashed/hung too often with that sd card reader (5V or even 3.X Volts).
+In the end it performed better as the DEV KIT C crashed/hung too often with that sd card reader (5V or even 3.X Volts). 
 
 
 ### What DOESN'T Work with the Huzzah
