@@ -408,12 +408,6 @@ CircuitPython's `sdcardio` module appears to have timing issues that can cause:
 
 **Solution:** This project uses the `sdcard_helper.py` module which handles  initialization with settling time and rate limiting.
 
-
-### Full SD Card Documentation
-
-**👉 For more SD troubleshooting, and details:**  
-**See [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)**
-
 ### Audio Files on SD Card
 
 **Supported formats:**
@@ -435,7 +429,10 @@ play.play_all_low()
 For SD card support you'll need:
 - SD card reader module with SPI interface
 - **100µF capacitor on SD VCC** (critical for stability)
-- Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader#hardware-setup)
+- Proper wiring - see [sdcard_helper wiring guide](https://github.com/jouellnyc/hiletgo_sdcard_reader)
+
+**👉 For more SD troubleshooting, and details:**  
+**See [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)**
 
 
 ## Additional Resources
