@@ -1,5 +1,6 @@
 import os
 import sdcard_helper
+sdcard_helper.mount()
 count = 0  # <--- Initialize ONCE here
 for x in range(0, 100):
     try:
