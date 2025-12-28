@@ -80,7 +80,11 @@ print("    Use RESET button instead")
 print("")
 
 print(f"Board: {board.board_id}")
-print(f"Baudrate: {sd_config.SD_BAUDRATE:,} Hz")
+# Handle baudrate being either int or tuple
+baudrate = sd_config.SD_BAUDRATE
+if isinstance(baudrate, tuple):
+    baudrate = baudrate[0]
+print(f"Baudrate: {baudrate:,} Hz")
 
 def safe_listdir(path):
     """List directory with timing info"""
@@ -92,7 +96,7 @@ def safe_listdir(path):
         return files
     except Exception as e:
         elapsed = time.monotonic() - start
-        print(f"  FAILED after {elapsed:.3f}s: {e}")
+        print(f"  FAILED after {elapsed:.3f}s: {str(e)}")
         return None
 
 # Mount
@@ -105,7 +109,7 @@ try:
     spi = busio.SPI(sd_config.SD_SCK, MOSI=sd_config.SD_MOSI, MISO=sd_config.SD_MISO)
     print("      ✓ Done")
     
-    print(f"\n[2/4] Creating SDCard ({sd_config.SD_BAUDRATE:,} Hz)...")
+    print(f"\n[2/4] Creating SDCard ({baudrate:,} Hz)...")
     sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
     print("      ✓ Done")
     
@@ -134,11 +138,11 @@ try:
     total_mb = (stats[0] * stats[2]) / (1024 * 1024)
     used_mb = ((stats[0] * stats[2]) - (stats[0] * stats[3])) / (1024 * 1024)
     free_mb = (stats[0] * stats[3]) / (1024 * 1024)
-    print(f"\n  Total: {total_mb:.2f} MB")
+    print(f"  Total: {total_mb:.2f} MB")
     print(f"  Used:  {used_mb:.2f} MB")
     print(f"  Free:  {free_mb:.2f} MB")
 except Exception as e:
-    print(f"\n  ✗ Failed: {e}")
+    print(f"  ✗ Failed: {str(e)}")
 
 # Test for bugs
 print("\n" + "=" * 60)
@@ -217,7 +221,7 @@ print("RESULTS")
 print("=" * 60)
 
 print(f"\nBoard:       {board.board_id}")
-print(f"Baudrate:    {sd_config.SD_BAUDRATE:,} Hz")
+print(f"Baudrate:    {baudrate:,} Hz")
 print(f"Disk usage:  {used_mb:.2f} MB")
 print(f"\nFile counts:")
 print(f"  Test 1 (immediate):  {len1}")
@@ -250,8 +254,25 @@ print("=" * 60)
 bug_type = None
 baseline = len1
 
-# Write failed completely
-if test_files_created == 0:
+# FIRST: Check if files disappeared after waiting (READ BUG)
+if len1 > 0 and len2 == 0:
+    bug_type = "READ_TIMEOUT"
+    print("\n❌ BUG #1: FILES DISAPPEARED!")
+    print(f"   • Started with {len1} files")
+    print(f"   • Waited 3 seconds")
+    print(f"   • Files vanished! Saw {len2} files")
+    
+    # ALSO check if there's a write bug
+    if test_files_created == 0:
+        bug_type = "READ_AND_WRITE"
+        print("\n❌ BUG #2: CANNOT WRITE FILES!")
+        print(f"   • Tried to write 10 files")
+        print(f"   • Actually wrote: {test_files_created} files")
+        print(f"   • SD card rejected the write!")
+        print("\n💥 DOUBLE BUG: Can't read AND can't write!")
+
+# Write failed but read is ok
+elif test_files_created == 0 and len1 == len2:
     bug_type = "WRITE_FAILED"
     print("\n❌ BUG: CANNOT WRITE FILES!")
     print(f"   • Tried to write 10 files")
@@ -283,14 +304,6 @@ elif len(set([len1, len2, len4, len6, len7])) > 3:
     print(f"   • {len1} → {len2} → {len4} → {len6} → {len7}")
     print(f"   • SD card is confused!")
 
-# Files disappeared after waiting
-elif len1 > 0 and len2 == 0:
-    bug_type = "TIMEOUT"
-    print("\n❌ BUG: FILES DISAPPEARED AFTER WAITING!")
-    print(f"   • Started with {len1} files")
-    print(f"   • Waited 3 seconds")
-    print(f"   • Files vanished! Saw {len2} files")
-
 # Everything worked
 elif test_files_created == 10 and len4 == (baseline + 10) and len6 == baseline:
     print("\n✅ NO BUGS!")
@@ -307,12 +320,43 @@ else:
     print(f"   The numbers don't make sense.")
 
 # Details for each bug type
-if bug_type == "WRITE_FAILED":
+if bug_type == "READ_AND_WRITE":
+    print("\n" + "=" * 60)
+    print("WHY THIS IS BAD")
+    print("=" * 60)
+    print("\n💥 WORST CASE: Two bugs at once!")
+    print("\nBUG #1 - Files disappear after waiting:")
+    print("  • You had 10 files")
+    print("  • You waited 3 seconds")
+    print("  • SD card forgot them all!")
+    print("\nBUG #2 - Can't save new files:")
+    print("  • SD card won't let you write")
+    print(f"  • At {baudrate:,} Hz it just says NO")
+    print("\nThis SD card is COMPLETELY BROKEN at this speed!")
+    print("\nWhat to do:")
+    print("  • Try MUCH slower speed (like 100,000 Hz)")
+    print("  • Check if wires are loose")
+    print("  • Try different SD card")
+    print("  • This board might not work with SD cards")
+
+elif bug_type == "READ_TIMEOUT":
+    print("\n" + "=" * 60)
+    print("WHY THIS IS BAD")
+    print("=" * 60)
+    print("\nIf you wait too long, files disappear!")
+    print("The SD card forgets after being quiet for 3 seconds.")
+    print(f"At {baudrate:,} Hz, the SD card has a timeout bug.")
+    print("\nWhat to do:")
+    print("  • Keep asking about files every 1-2 seconds")
+    print("  • Or use slower speed")
+    print("  • This board has a known timeout issue")
+
+elif bug_type == "WRITE_FAILED":
     print("\n" + "=" * 60)
     print("WHY THIS IS BAD")
     print("=" * 60)
     print("\nThe SD card won't let you save files!")
-    print(f"At {sd_config.SD_BAUDRATE:,} Hz, the SD card says NO.")
+    print(f"At {baudrate:,} Hz, the SD card says NO.")
     print("\nWhat to do:")
     print("  • Try slower speed (like 250,000)")
     print("  • Check if wires are loose")
@@ -324,7 +368,7 @@ elif bug_type == "WRITE_INVISIBLE":
     print("=" * 60)
     print("\nYou saved files but they became invisible!")
     print("Like magic... but bad magic.")
-    print(f"At {sd_config.SD_BAUDRATE:,} Hz, the SD card forgets what you saved.")
+    print(f"At {baudrate:,} Hz, the SD card forgets what you saved.")
     print("\nWhat to do:")
     print("  • Use MUCH slower speed")
     print("  • This board might not work with SD cards")
@@ -345,7 +389,7 @@ elif bug_type == "INCONSISTENT":
     print("=" * 60)
     print("\nThe SD card can't count!")
     print("Every time you ask 'how many files?', it gives a different answer.")
-    print(f"At {sd_config.SD_BAUDRATE:,} Hz, this board is talking TOO FAST.")
+    print(f"At {baudrate:,} Hz, this board is talking TOO FAST.")
     print("\nWhat to do:")
     print("  • Use MUCH MUCH slower speed (like 100,000)")
     print("  • Or use different board")
