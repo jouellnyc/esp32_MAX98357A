@@ -28,7 +28,7 @@ elif "huzzah32" in board_type and "s3" not in board_type:
     SD_MOSI = board.MOSI  # GPIO 18
     SD_MISO = board.MISO  # GPIO 19
     SD_CS   = board.A5    # GPIO 4
-    SD_BAUDRATE = 10_000_000
+    SD_BAUDRATE = 8_000_000
     
 # ============================================
 # ESP32-S3 DevKit-C Pins
