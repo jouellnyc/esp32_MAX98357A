@@ -1,25 +1,43 @@
+"""
+audio_config.py
+Unified I2S Audio configuration for RP2350, ESP32, and ESP32-S3
+"""
+
 import board
 
+# Detect board identity
+board_type = board.board_id
+print(f"--- Audio Config: Detected {board_type} ---")
+
 # ============================================
-# I2S Audio Configuration
+# RP2350-Plus (Waveshare)
 # ============================================
-I2S_BIT_CLOCK   = board.D14   # BCLK (GPIO14)
-I2S_WORD_SELECT = board.D32   # LRC / WS (GPIO32)
-I2S_DATA        = board.D27   # DIN (GPIO27)
+if "rp2350" in board_type:
+    I2S_BIT_CLOCK    = board.GP20   
+    I2S_WORD_SELECT  = board.GP21  
+    I2S_DATA         = board.GP22  
 
-"""
-This amp's actual behavior is:
-GAIN      Connection Volume
-Floating  LOUDEST
-3.3V      Quieter
-GND       Quieter (same as 3.3V)
+# ============================================
+# ESP32 HUZZAH (Original)
+# ============================================
+elif "huzzah32" in board_type and "s3" not in board_type:
+    I2S_BIT_CLOCK    = board.D14   
+    I2S_WORD_SELECT  = board.D32   
+    I2S_DATA         = board.D27   
 
-Some MAX98357A modules (especially clones) behave differently than the datasheet.
-What you're seeing makes sense if the GAIN pin has internal pull-up/pull-down resistors that create this behavior.
+# ============================================
+# ESP32-S3 DevKit-C
+# ============================================
+elif "s3" in board_type:
+    I2S_BIT_CLOCK    = board.GP20
+    I2S_WORD_SELECT  = board.GP21  
+    I2S_DATA         = board.GP22  
 
-Your Volume Control Options:
-
-Loudest: Leave GAIN disconnected (floating) ← Use this if you want max volume
-Quieter: Connect GAIN to either GND or 3.3V (both seem similar)
-"""
-
+# ============================================
+# Fallback / Default
+# ============================================
+else:
+    print("Warning: Unknown board. Using standard ESP32 fallback pins.")
+    I2S_BIT_CLOCK    = board.D14
+    I2S_WORD_SELECT  = board.D32
+    I2S_DATA         = board.D27
