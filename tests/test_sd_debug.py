@@ -334,7 +334,14 @@ if bug_type == "READ_AND_WRITE":
     print(f"  • At {baudrate:,} Hz it just says NO")
     print("\nThis SD card is COMPLETELY BROKEN at this speed!")
     print("\nWhat to do:")
-    print("  • Try MUCH slower speed (like 100,000 Hz)")
+    if baudrate >= 1_000_000:
+        suggested = baudrate // 10
+        print(f"  • Try MUCH slower speed (like {suggested:,} Hz)")
+    elif baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Try slower speed (like {suggested:,} Hz)")
+    else:
+        print(f"  • Already at {baudrate:,} Hz - can't go much slower!")
     print("  • Check if wires are loose")
     print("  • Try different SD card")
     print("  • This board might not work with SD cards")
@@ -348,7 +355,9 @@ elif bug_type == "READ_TIMEOUT":
     print(f"At {baudrate:,} Hz, the SD card has a timeout bug.")
     print("\nWhat to do:")
     print("  • Keep asking about files every 1-2 seconds")
-    print("  • Or use slower speed")
+    if baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Or try slower speed (like {suggested:,} Hz)")
     print("  • This board has a known timeout issue")
 
 elif bug_type == "WRITE_FAILED":
@@ -358,7 +367,14 @@ elif bug_type == "WRITE_FAILED":
     print("\nThe SD card won't let you save files!")
     print(f"At {baudrate:,} Hz, the SD card says NO.")
     print("\nWhat to do:")
-    print("  • Try slower speed (like 250,000)")
+    if baudrate >= 1_000_000:
+        suggested = baudrate // 10
+        print(f"  • Try MUCH slower speed (like {suggested:,} Hz)")
+    elif baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Try slower speed (like {suggested:,} Hz)")
+    else:
+        print(f"  • Already at {baudrate:,} Hz - can't go much slower!")
     print("  • Check if wires are loose")
     print("  • Try different SD card")
 
@@ -370,7 +386,12 @@ elif bug_type == "WRITE_INVISIBLE":
     print("Like magic... but bad magic.")
     print(f"At {baudrate:,} Hz, the SD card forgets what you saved.")
     print("\nWhat to do:")
-    print("  • Use MUCH slower speed")
+    if baudrate >= 1_000_000:
+        suggested = baudrate // 10
+        print(f"  • Use MUCH slower speed (try {suggested:,} Hz)")
+    elif baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Use slower speed (try {suggested:,} Hz)")
     print("  • This board might not work with SD cards")
 
 elif bug_type == "WRONG_COUNT":
@@ -380,7 +401,9 @@ elif bug_type == "WRONG_COUNT":
     print("\nThe SD card lost track of your files!")
     print("You saved files but it doesn't remember them all.")
     print("\nWhat to do:")
-    print("  • Use slower speed")
+    if baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Use slower speed (try {suggested:,} Hz)")
     print("  • Check wires")
 
 elif bug_type == "INCONSISTENT":
@@ -391,7 +414,12 @@ elif bug_type == "INCONSISTENT":
     print("Every time you ask 'how many files?', it gives a different answer.")
     print(f"At {baudrate:,} Hz, this board is talking TOO FAST.")
     print("\nWhat to do:")
-    print("  • Use MUCH MUCH slower speed (like 100,000)")
+    if baudrate >= 1_000_000:
+        suggested = 100_000
+        print(f"  • Use MUCH MUCH slower speed (like {suggested:,} Hz)")
+    elif baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Use slower speed (like {suggested:,} Hz)")
     print("  • Or use different board")
 
 elif bug_type == "TIMEOUT":
@@ -402,7 +430,9 @@ elif bug_type == "TIMEOUT":
     print("The SD card forgets after being quiet.")
     print("\nWhat to do:")
     print("  • Keep asking about files every second")
-    print("  • Or use slower speed")
+    if baudrate >= 100_000:
+        suggested = baudrate // 2
+        print(f"  • Or use slower speed (try {suggested:,} Hz)")
 
 
 
