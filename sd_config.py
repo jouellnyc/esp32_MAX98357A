@@ -28,8 +28,8 @@ elif "huzzah32" in board_type and "s3" not in board_type:
     SD_MOSI = board.MOSI  # GPIO 18
     SD_MISO = board.MISO  # GPIO 19
     SD_CS   = board.A5    # GPIO 4
-    SD_BAUDRATE = 4_000_000
-
+    SD_BAUDRATE = 10_000_000
+    
 # ============================================
 # ESP32-S3 DevKit-C Pins
 # ============================================
@@ -51,6 +51,7 @@ else:
     SD_CS   = board.D5
     SD_BAUDRATE = 1_000_000
 
+print(f"--- SD Config: using {SD_BAUDRATE} SD_BAUDRATE ---")
 # ============================================
 # Shared Settings
 # ============================================
