@@ -1,11 +1,53 @@
 """
-CircuitPython SD Card Bug Test
+CircuitPython SD Card Bug Test - Compatible with CP 10.0.3
 
-Usage:
-1. Copy sd_config.py and this file to your CircuitPython board
-2. Ensure SD card has at least one file on it
-3. Run: import test_sd_bug
-4. For most reliable reproduction: Press Ctrl+D and run again
+WHAT THIS TEST DOES:
+====================
+This script tests for two common SD card bugs in CircuitPython:
+
+1. CACHE BUG ("Schrödinger's Files"):
+   - Symptom: os.listdir() returns [] on first call after mount, but shows 
+     files on second call
+   - Cause: SD card directory cache not initialized after mount
+   - Pattern: 0 files → (wait) → 10 files
+
+2. TIMEOUT BUG (DevKitC specific):
+   - Symptom: Files appear on first call, then DISAPPEAR after 1+ second idle
+   - Cause: SD card enters power-saving mode after 1 second of inactivity
+   - Pattern: 10 files → (wait 3s) → 0 files
+
+HOW IT WORKS:
+=============
+1. Mounts the SD card (will hang if you used Ctrl+D soft reboot)
+2. Checks disk usage to verify files exist
+3. Calls os.listdir() three times with delays between:
+   - Immediate after mount
+   - After 3 seconds
+   - After 1 more second
+4. Analyzes the pattern of results to identify which bug (if any) is present
+5. Provides specific workarounds for the detected issue
+
+TESTED BOARDS:
+==============
+- Waveshare RP2350-Plus: ✅ No bugs (works perfectly)
+- ESP32 Feather Huzzah: ✅ No cache/timeout bugs (soft reboot issue only)
+- ESP32-S3 DevKitC: ❌ Has 1-second timeout bug at all speeds
+
+IMPORTANT:
+==========
+- NEVER use Ctrl+D (soft reboot) when testing SD cards on ESP32 boards
+  (causes hang at VfsFat creation)
+- Always use RESET button to restart between tests
+- Requires sd_config.py with board-specific pin configuration
+
+USAGE:
+======
+1. Hard reset your board (press RESET button)
+2. Run: import test_sd_debug
+3. Review the diagnosis output
+4. Follow the recommended workarounds
+
+For more info: https://github.com/adafruit/circuitpython/issues/10741
 """
 
 import board
@@ -15,203 +57,235 @@ import storage
 import os
 import time
 
-# Import board-specific config
-import sd_config
+print("=" * 60)
+print("SD Card Bug Test - Complete Diagnostic")
+print("=" * 60)
 
-print("=" * 50)
-print("SD Card Cache Bug Test (with safety)")
-print("=" * 50)
+# Import config
+try:
+    import sd_config
+except ImportError:
+    print("\n✗ ERROR: sd_config.py not found!")
+    raise SystemExit
 
-def safe_listdir(path, timeout_note=5):
-    """List directory with progress tracking"""
+# Warn about soft reboot
+print("\n⚠️  IMPORTANT: If you just pressed Ctrl+D, this will hang!")
+print("    Use RESET button instead")
+print("")
+
+print(f"Board: {board.board_id}")
+print(f"Config: {sd_config.SD_BAUDRATE:,} Hz")
+
+def safe_listdir(path):
+    """List directory with timing info"""
     start = time.monotonic()
-    
     try:
-        print(f"  [Starting listdir at {start:.2f}s]")
         files = os.listdir(path)
         elapsed = time.monotonic() - start
-        print(f"  [Completed in {elapsed:.2f}s]")
+        print(f"  Completed in {elapsed:.3f}s")
         return files
     except Exception as e:
         elapsed = time.monotonic() - start
-        print(f"  [FAILED after {elapsed:.2f}s: {e}]")
+        print(f"  FAILED after {elapsed:.3f}s: {e}")
         return None
 
-# Display configuration
-print(f"\nBoard: {board.board_id}")
-print(f"Config loaded from sd_config.py")
-
-# Mount SD card
-print("\n[STEP 1] Mounting SD card...")
-spi = None
-sd = None
-vfs = None
+# Mount
+print("\n" + "=" * 60)
+print("MOUNTING SD CARD")
+print("=" * 60)
 
 try:
+    print("\n[1/4] Creating SPI...")
     spi = busio.SPI(sd_config.SD_SCK, MOSI=sd_config.SD_MOSI, MISO=sd_config.SD_MISO)
-    print("  ✓ SPI initialized")
+    print("      ✓ Done")
     
+    print(f"\n[2/4] Creating SDCard ({sd_config.SD_BAUDRATE:,} Hz)...")
     sd = sdcardio.SDCard(spi, sd_config.SD_CS, baudrate=sd_config.SD_BAUDRATE)
-    print(f"  ✓ SDCard object created ({sd_config.SD_BAUDRATE:,} Hz)")
+    print("      ✓ Done")
     
+    print("\n[3/4] Creating VfsFat...")
+    print("      (Soft reboot hangs here - press RESET if stuck)")
     vfs = storage.VfsFat(sd)
-    print("  ✓ VfsFat created")
+    print("      ✓ Done")
     
+    print(f"\n[4/4] Mounting to {sd_config.SD_MOUNT}...")
     storage.mount(vfs, sd_config.SD_MOUNT)
-    print(f"  ✓ Mounted to {sd_config.SD_MOUNT}")
+    print("      ✓ Mounted!")
     
 except Exception as e:
-    print(f"  ✗ Mount failed: {e}")
-    print("\n❌ Test aborted - could not mount SD card")
-    print("\nTroubleshooting:")
-    print("  • Check SD card is inserted properly")
-    print("  • Verify SD card is FAT32 formatted")
-    print("  • Check wiring matches sd_config.py")
-    print("  • Try lower baudrate (edit SD_BAUDRATE in sd_config.py)")
+    print(f"\n      ✗ Failed: {e}")
+    print("\nIf 'IO pin in use', press RESET and try again")
     raise SystemExit
 
-# Check disk usage (should work even if listdir fails)
-print("\n[STEP 2] Checking disk usage...")
+# Check disk usage
+print("\n" + "=" * 60)
+print("DISK USAGE")
+print("=" * 60)
+
 used_mb = 0
 try:
     stats = os.statvfs(sd_config.SD_MOUNT)
     total_mb = (stats[0] * stats[2]) / (1024 * 1024)
     used_mb = ((stats[0] * stats[2]) - (stats[0] * stats[3])) / (1024 * 1024)
     free_mb = (stats[0] * stats[3]) / (1024 * 1024)
-    print(f"  Total: {total_mb:.2f} MB")
+    print(f"\n  Total: {total_mb:.2f} MB")
     print(f"  Used:  {used_mb:.2f} MB")
     print(f"  Free:  {free_mb:.2f} MB")
 except Exception as e:
-    print(f"  ✗ statvfs failed: {e}")
+    print(f"\n  ✗ Failed: {e}")
 
-# Test 1: Immediate listdir
-print("\n[STEP 3] First listdir (immediate after mount)...")
-print("  (If this hangs, the bug is severe - press RESET to recover)")
+# Test for bugs
+print("\n" + "=" * 60)
+print("TESTING FOR BUGS")
+print("=" * 60)
+
+# Test 1: Immediate
+print("\n[Test 1] First listdir (immediate after mount):")
 files1 = safe_listdir(sd_config.SD_MOUNT)
-
-if files1 is None:
-    print("  ⚠️ First listdir failed/hung - this is part of the bug!")
-    files1 = []
+if files1:
+    print(f"  Result: {len(files1)} files")
 else:
-    print(f"  Result: {files1}")
-    print(f"  Count: {len(files1)} files")
+    print(f"  Result: Empty or failed")
 
-# Wait and try again
-print("\n[STEP 4] Waiting 3 seconds...")
-for i in range(3):
-    time.sleep(1)
-    print(f"  {i+1}...")
+# Test 2: After 3 seconds
+print("\n[Test 2] Waiting 3 seconds...")
+time.sleep(1)
+print("  1...")
+time.sleep(1)
+print("  2...")
+time.sleep(1)
+print("  3...")
 
-print("\n[STEP 5] Second listdir (after delay)...")
+print("\n[Test 2] Second listdir (after 3s):")
 files2 = safe_listdir(sd_config.SD_MOUNT)
-
-if files2 is None:
-    print("  ⚠️ Second listdir also failed!")
-    files2 = []
+if files2:
+    print(f"  Result: {len(files2)} files")
 else:
-    print(f"  Result: {files2}")
-    print(f"  Count: {len(files2)} files")
+    print(f"  Result: Empty or failed")
 
-# Try one more time
-print("\n[STEP 6] Third listdir (for good measure)...")
+# Test 3: One more
+print("\n[Test 3] Third listdir (after 1s):")
 time.sleep(1)
 files3 = safe_listdir(sd_config.SD_MOUNT)
-
-if files3 is None:
-    print("  ⚠️ Third listdir also failed!")
-    files3 = []
+if files3:
+    print(f"  Result: {len(files3)} files")
 else:
-    print(f"  Result: {files3}")
-    print(f"  Count: {len(files3)} files")
+    print(f"  Result: Empty or failed")
 
 # Analysis
-print("\n" + "=" * 50)
-print("RESULTS:")
-print("=" * 50)
-print(f"Board:       {board.board_id}")
+len1 = len(files1) if files1 else 0
+len2 = len(files2) if files2 else 0
+len3 = len(files3) if files3 else 0
+
+print("\n" + "=" * 60)
+print("RESULTS")
+print("=" * 60)
+
+print(f"\nBoard:       {board.board_id}")
 print(f"Baudrate:    {sd_config.SD_BAUDRATE:,} Hz")
-print(f"First call:  {len(files1)} files")
-print(f"Second call: {len(files2)} files")
-print(f"Third call:  {len(files3)} files")
 print(f"Disk usage:  {used_mb:.2f} MB")
+print(f"\nFile counts:")
+print(f"  First call:  {len1}")
+print(f"  Second call: {len2}")
+print(f"  Third call:  {len3}")
 
 # Diagnosis
-print("\n" + "=" * 50)
-print("DIAGNOSIS:")
-print("=" * 50)
+print("\n" + "=" * 60)
+print("DIAGNOSIS")
+print("=" * 60)
 
-if len(files1) == 0 and len(files2) > 0:
-    print("❌ BUG CONFIRMED!")
-    print("   Symptom: Files invisible on first call, appeared on second")
-    print("   This is the 'Schrödinger's files' cache bug")
-    print(f"   Files appeared after ~{3:.0f} second delay")
+bug_type = None
+
+# Pattern 1: Files disappear (TIMEOUT BUG)
+if len1 > 0 and len2 == 0:
+    bug_type = "TIMEOUT"
+    print("\n❌ TIMEOUT BUG DETECTED!")
+    print("   Files appeared, then DISAPPEARED")
+    print("   This is the 1-second idle timeout issue")
     
-elif len(files1) == 0 and len(files2) == 0 and len(files3) > 0:
-    print("❌ BUG CONFIRMED (severe variant)!")
-    print("   Symptom: Required 2 delays (6+ seconds) before files appeared")
-    print("   This board/baudrate combo needs longer settling time")
+# Pattern 2: Files appear late (CACHE BUG)
+elif len1 == 0 and len2 > 0:
+    bug_type = "CACHE"
+    print("\n❌ CACHE BUG DETECTED!")
+    print("   Files invisible first, appeared after delay")
+    print("   This is the cache initialization bug")
     
-elif len(files1) == 0 and len(files2) == 0 and len(files3) == 0:
-    if used_mb > 1:
-        print("❌ BUG CONFIRMED (critical - files never appeared)!")
-        print(f"   Disk shows {used_mb:.2f} MB used but listdir() always returns empty")
-        print("   SD card completely unusable without workaround")
-        print("\n   Suggestions:")
-        print("   • Try much lower baudrate (100000 Hz)")
-        print("   • Add settling time after mount (see workaround below)")
-    else:
-        print("⚠️ UNCLEAR - SD card appears empty")
-        print("   Either:")
-        print("   • SD card has no files (add a test file and try again)")
-        print("   • SD card not formatted correctly (should be FAT32)")
-        
-elif len(files1) > 0:
-    print("✅ No bug detected on this run")
-    print("   Files visible immediately")
-    print("\n   Possible reasons:")
-    print("   • This board/baudrate is fast enough")
-    print("   • SD card was already 'warmed up' from previous run")
-    print("   • Try soft reboot (Ctrl+D) and run again for most reliable test")
+# Pattern 3: Files appear very late
+elif len1 == 0 and len2 == 0 and len3 > 0:
+    bug_type = "CACHE_SEVERE"
+    print("\n❌ SEVERE CACHE BUG!")
+    print("   Files needed 4+ seconds to appear")
     
+# Pattern 4: Files never appear
+elif len1 == 0 and len2 == 0 and len3 == 0 and used_mb > 1:
+    bug_type = "CRITICAL"
+    print("\n❌ CRITICAL BUG!")
+    print(f"   Disk: {used_mb:.2f} MB used, but NO files visible")
+    
+# Pattern 5: Empty SD
+elif used_mb < 0.1 and len1 == 0:
+    print("\n⚠️  SD card appears empty")
+    print("   Add test files and try again")
+    
+# Pattern 6: Works perfectly
+elif len1 > 0 and len2 > 0 and len3 > 0:
+    print("\n✅ NO BUGS DETECTED")
+    print("   All calls returned files")
+    print("   This configuration is stable")
+    
+# Pattern 7: Weird
 else:
-    print("⚠️ Unexpected result")
-    print("   Check SD card and wiring")
+    print("\n⚠️  UNUSUAL PATTERN")
+    print("   Doesn't match known bugs")
 
-# Workaround
-if len(files1) == 0 and (len(files2) > 0 or len(files3) > 0):
-    print("\n" + "=" * 50)
-    print("WORKAROUND:")
-    print("=" * 50)
-    print("Add this after storage.mount():")
-    print("")
-    print("    storage.mount(vfs, '/sd')")
-    print("    time.sleep(2.0)        # Let hardware settle")
-    print("    _ = os.listdir('/sd')  # Prime cache")
-    print("    os.sync()")
-    print("    time.sleep(0.5)        # Extra settling")
-    print("    # Now listdir() works reliably")
+# Details for each bug type
+if bug_type == "TIMEOUT":
+    print("\n" + "-" * 60)
+    print("TIMEOUT BUG DETAILS:")
+    print("-" * 60)
+    print("\nSD card dumps cache after 1 second idle time.")
+    print(f"Happens at {sd_config.SD_BAUDRATE:,} Hz (all speeds)")
+    print("\nWorkaround: Keepalive pattern")
+    print("  import time")
+    print("  while True:")
+    print("      time.sleep(0.8)")
+    print("      sdcard_helper.keepalive()")
 
-# Reproduction instructions
-print("\n" + "=" * 50)
-print("TO REPRODUCE MOST RELIABLY:")
-print("=" * 50)
-print("1. Press Ctrl+D (soft reboot)")
-print("2. Run: import test_sd_bug")
-print("3. Bug should appear consistently after soft reboot")
-print("")
-print("Report to: https://github.com/adafruit/circuitpython/issues")
-print("Include: Board model, baudrate, and this test output")
+elif bug_type in ["CACHE", "CACHE_SEVERE"]:
+    print("\n" + "-" * 60)
+    print("CACHE BUG WORKAROUND:")
+    print("-" * 60)
+    print("\nAdd settling time after mount:")
+    print("  storage.mount(vfs, '/sd')")
+    print("  time.sleep(2.0)")
+    print("  _ = os.listdir('/sd')")
+    print("  os.sync()")
+
+elif bug_type == "CRITICAL":
+    print("\n" + "-" * 60)
+    print("SD CARD UNUSABLE")
+    print("-" * 60)
+    print("\nTry different board or SD module")
+
+# Important notes
+print("\n" + "=" * 60)
+print("IMPORTANT")
+print("=" * 60)
+print("\n🔴 NEVER use Ctrl+D with SD cards on ESP32!")
+print("   Always use RESET button")
+print("\n✅ To test again: Press RESET, then import test_sd_debug")
 
 # Cleanup
-print("\n[CLEANUP] Attempting to unmount...")
+print("\n" + "=" * 60)
+print("CLEANUP")
+print("=" * 60)
+
 try:
     storage.umount(sd_config.SD_MOUNT)
-    if spi:
-        spi.deinit()
-    print("  ✓ Cleaned up successfully")
-    print("  Safe to run test again or press RESET")
+    spi.deinit()
+    print("\n✓ Done")
 except Exception as e:
-    print(f"  ⚠️ Cleanup failed: {e}")
-    print("  Press RESET button before next test")
+    print(f"\n⚠️  Failed: {e}")
+    print("Press RESET before next test")
 
-print("\n✓ Test complete")
+print("\n✓ TEST COMPLETE\n")
