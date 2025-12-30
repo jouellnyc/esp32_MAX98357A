@@ -33,6 +33,11 @@ elif "s3" in board_type:
     I2S_WORD_SELECT  = board.GP21  
     I2S_DATA         = board.GP22  
 
+elif "s2" in board_type:
+    I2S_BIT_CLOCK    = board.IO35
+    I2S_WORD_SELECT  = board.IO36  
+    I2S_DATA         = board.IO37      
+
 # ============================================
 # Fallback / Default
 # ============================================

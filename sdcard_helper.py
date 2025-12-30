@@ -14,7 +14,7 @@ Usage:
         files = sdcard_helper.list_files()
 """
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 import busio
 import sdcardio
@@ -295,51 +295,34 @@ def mount(timeout=10, verbose=None):
 
 
 def unmount():
-    """Unmount the SD card with aggressive cleanup."""
-    global _spi, _sd, _vfs, _mounted, _last_operation_time
+    """Unmount the SD card filesystem but keep SPI/SD objects for reuse."""
+    global _vfs, _mounted, _last_operation_time
     
     if not _mounted:
         print("✓ SD card not mounted, nothing to do")
         return True
     
     try:
-        # Unmount filesystem first
+        # Unmount filesystem only
         try:
             storage.umount(sd_config.SD_MOUNT)
         except:
             pass  # Might already be unmounted
         
-        # Aggressively clean up SPI and related objects
-        if _spi:
-            try:
-                _spi.deinit()
-            except:
-                pass  # Already deinitialized
-        
-        # Clear all references
-        _spi = None
-        _sd = None
+        # Clear VFS reference but keep SPI/SD objects
         _vfs = None
         
-        # Force garbage collection to release pins
-        gc.collect()
-        
-        # Give hardware time to release pins
-        time.sleep(0.5)
-        
+        # Reset mount flag
         _mounted = False
         _last_operation_time = 0
-        print("✓ SD card unmounted")
+        
+        print("✓ SD card unmounted (SPI/SD objects retained for reuse)")
         return True
         
     except Exception as e:
         print(f"✗ Unmount failed: {e}")
-        # Force cleanup anyway
-        _spi = None
-        _sd = None
         _vfs = None
         _mounted = False
-        gc.collect()
         return False
 
 

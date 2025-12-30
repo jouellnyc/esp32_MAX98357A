@@ -40,6 +40,13 @@ elif "s3" in board_type:
     SD_CS   = board.IO16
     SD_BAUDRATE = 100_000 
 
+elif "s2" in board_type:
+    SD_SCK  = board.IO12
+    SD_MOSI = board.IO11
+    SD_MISO = board.IO13
+    SD_CS   = board.IO16
+    SD_BAUDRATE = 4_000_000
+    
 # ============================================
 # Fallback / Default (Just in case)
 # ============================================
