@@ -345,7 +345,6 @@ audio.play(generate_tone())
 The ESP32-S3-DevKitC-1-N8R8 has:
 - 8MB Flash (CIRCUITPY storage)
 - 8MB PSRAM (for large buffers)
-(but again was not reliable in the end)
 
 For large music libraries, use SD card storage.
 
