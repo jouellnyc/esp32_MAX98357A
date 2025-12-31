@@ -32,7 +32,7 @@ _sd = None
 _vfs = None
 _mounted = False
 _last_operation_time = 0
-_verbosity = 'diags'  # 'silent', 'diags', or 'debug'
+_verbosity = 'silent'  # 'silent', 'diags', or 'debug'
 
 
 def _debug_print(message):

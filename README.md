@@ -9,8 +9,8 @@ A complete audio player implementation using CircuitPython.
 ## Hardware Requirements
 
 * [Waveshare RP2350-Plus](https://www.waveshare.com/rp2350-plus.htm) (Strongly recommended) or
-* Adafruit Huzzah (Recommended but see below) or 
-* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY) (See below - not recomended in the end, but did partially work)
+* Adafruit Huzzah (Recommended but see below)
+* [ESP32-S3-DevKitC-1-N8R8 Development Board](https://www.amazon.com/dp/B09MHP42LY)
 * [MAX98357A I2S Audio Amplifier Breakout](https://www.amazon.com/dp/B0B4J93M9N)
 * [HiLetgo SD Card Module](https://www.amazon.com/dp/B07BJ2P6X6) (or similar SPI SD card reader)
 * [4-8 ohm Speaker](https://www.adafruit.com/product/1669)
@@ -359,8 +359,6 @@ For large music libraries, use SD card storage.
 You can play music with the same general setup (different pins obviously) using this board BUT, in my experience:
 
 - Although the ESP32 Feather has limited total ram (512k) compared to newer ESP32-S3 boards (4MB+), it is very stable with the Hiletgo SD card reader.
-- In the end it performed better than the DEV KIT C (which crashed/hung too often) with the Hiletdo sd card reader (5V or even 3.X Volts). 
-- But a worse performance than the Waveshare RP2350
 - If you want to try with Adafruit, buy this one with 2MB psram https://www.adafruit.com/product/5900 (not tested, but very likely more capable)
 - I.E Don't buy the one with only 512 total 'local' ram: https://www.adafruit.com/product/3591 (but that's the one I used here)
 
@@ -384,17 +382,12 @@ See the updated play.py that filters for lower quality wavs.
 
 
 ## SD Card Support
-
 This music player supports reading audio files from SD cards using the SPI interface.
 
-### Important: Use sdcard_helper
+This project uses the `sdcard_helper.py` module which handles  initialization with settling time and rate limiting.
 
-CircuitPython's `sdcardio` module appears to have timing issues that can cause:
-- Empty directories after soft reboot
-- Files appearing only on second access
-- Device hangs during playback
+For more SD troubleshooting, and details, see  [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader)
 
-**Solution:** This project uses the `sdcard_helper.py` module which handles  initialization with settling time and rate limiting.
 
 ### Audio Files on SD Card
 
@@ -413,7 +406,6 @@ play_all()
 play.play_all_low()
 ```
 
-** For more SD troubleshooting, and details, see  [hiletgo_sdcard_reader repository](https://github.com/jouellnyc/hiletgo_sdcard_reader) **
 
 
 ## Additional Resources
