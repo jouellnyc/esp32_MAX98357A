@@ -5,6 +5,12 @@ Unified I2S Audio configuration for RP2350, ESP32, and ESP32-S3
 
 import board
 
+"""
+I2S_WORD_SELECT  →  LRC
+I2S_BIT_CLOCK    →  BCLK
+I2S_DATA         →  DIN
+"""
+
 # Detect board identity
 board_type = board.board_id
 print(f"--- Audio Config: Detected {board_type} ---")
@@ -29,14 +35,14 @@ elif "huzzah32" in board_type and "s3" not in board_type:
 # ESP32-S3 DevKit-C
 # ============================================
 elif "s3" in board_type:
-    I2S_BIT_CLOCK    = board.GP20
-    I2S_WORD_SELECT  = board.GP21  
-    I2S_DATA         = board.GP22  
+    I2S_BIT_CLOCK    = board.IO4
+    I2S_WORD_SELECT  = board.IO5  
+    I2S_DATA         = board.IO6  
 
 elif "s2" in board_type:
-    I2S_BIT_CLOCK    = board.IO35
-    I2S_WORD_SELECT  = board.IO36  
-    I2S_DATA         = board.IO37      
+    I2S_WORD_SELECT  = board.IO4
+    I2S_BIT_CLOCK    = board.IO5
+    I2S_DATA         = board.IO6      
 
 # ============================================
 # Fallback / Default
